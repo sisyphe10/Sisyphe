@@ -11,7 +11,7 @@
             --bg-color: #111111;
             --card-bg: #1c1c1c;
             --text-color: #ffffff;
-            --text-muted: #999;
+            --text-muted: #bbb;
             --accent: #45557f;
             --income: #ff7a2f;
             --expense: #f2576a;
@@ -155,6 +155,7 @@
             padding: 9px 12px;
             border-bottom: 1px solid var(--border);
             font-size: 0.85rem;
+            color: #ddd;
         }
         tr:hover { background: var(--hover-bg); }
         .badge {
@@ -185,7 +186,7 @@
             align-items: end;
         }
         .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .form-group label { font-size: 0.75rem; color: var(--text-muted); }
+        .form-group label { font-size: 0.75rem; color: #ccc; }
         .form-group input, .form-group select {
             background: var(--input-bg);
             border: 1px solid var(--border);
@@ -220,10 +221,10 @@
         .btn-danger:hover { background: #d9456b; }
         .btn-ghost {
             background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
+            border: 1px solid #555;
+            color: #ccc;
         }
-        .btn-ghost:hover { border-color: var(--text-color); color: var(--text-color); }
+        .btn-ghost:hover { border-color: #fff; color: #fff; }
         .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
         .editing-indicator {
             display: none;
@@ -359,7 +360,7 @@
         .cat-item.dragging { opacity: 0.4; transform: scale(0.97); }
         .cat-item.drag-over { background: var(--navy); color: #fff; border-radius: 6px; }
         .cat-item .cat-handle {
-            color: var(--text-muted);
+            color: #777;
             margin-right: 8px;
             font-size: 0.85rem;
             flex-shrink: 0;
@@ -443,6 +444,7 @@
             font-size: 0.75rem;
             font-weight: 600;
             margin-bottom: 2px;
+            color: #ddd;
         }
         .cal-cell.sun .cal-day { color: var(--expense); }
         .cal-cell.sat .cal-day { color: var(--navy); }
@@ -454,6 +456,7 @@
         .cal-amounts span {
             font-size: 0.6rem;
             line-height: 1.3;
+            font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
