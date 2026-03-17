@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sisyphe - 가계부</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-color: #1a1a1a;
@@ -693,7 +694,8 @@
         <div class="settings-section">
             <h3>데이터 관리</h3>
             <div class="data-actions">
-                <button class="btn btn-primary" onclick="exportData()">JSON 내보내기</button>
+                <button class="btn btn-primary" onclick="exportExcel()">엑셀 내보내기</button>
+                <button class="btn btn-ghost" onclick="exportData()">JSON 내보내기</button>
                 <div class="file-input-wrap">
                     <button class="btn btn-ghost">JSON 가져오기</button>
                     <input type="file" accept=".json" onchange="importData(event)">
@@ -1373,6 +1375,56 @@ function removeCategoryUI(type, name) {
 // ============================================================
 // DATA EXPORT / IMPORT / RESET
 // ============================================================
+function exportExcel() {
+    const data = getData();
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: 거래 내역
+    const txRows = data.transactions
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map(tx => ({
+            '날짜': tx.date,
+            '유형': tx.type === 'income' ? '수입' : '지출',
+            '카테고리': tx.category,
+            '금액': tx.amount,
+            '메모': tx.memo || ''
+        }));
+    const ws1 = XLSX.utils.json_to_sheet(txRows.length ? txRows : [{ '날짜': '', '유형': '', '카테고리': '', '금액': '', '메모': '' }]);
+    ws1['!cols'] = [{ wch: 12 }, { wch: 6 }, { wch: 12 }, { wch: 14 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(wb, ws1, '거래내역');
+
+    // Sheet 2: 월별 요약
+    const monthMap = {};
+    data.transactions.forEach(tx => {
+        const ym = tx.date.slice(0, 7);
+        if (!monthMap[ym]) monthMap[ym] = { income: 0, expense: 0 };
+        if (tx.type === 'income') monthMap[ym].income += tx.amount;
+        else monthMap[ym].expense += tx.amount;
+    });
+    const summaryRows = Object.keys(monthMap).sort().map(ym => ({
+        '월': ym,
+        '수입': monthMap[ym].income,
+        '지출': monthMap[ym].expense,
+        '순수입': monthMap[ym].income - monthMap[ym].expense
+    }));
+    const ws2 = XLSX.utils.json_to_sheet(summaryRows.length ? summaryRows : [{ '월': '', '수입': '', '지출': '', '순수입': '' }]);
+    ws2['!cols'] = [{ wch: 10 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, ws2, '월별요약');
+
+    // Sheet 3: 예산
+    const budgetRows = Object.entries(data.budgets).map(([cat, amt]) => ({
+        '카테고리': cat,
+        '월 예산': amt
+    }));
+    if (budgetRows.length) {
+        const ws3 = XLSX.utils.json_to_sheet(budgetRows);
+        ws3['!cols'] = [{ wch: 12 }, { wch: 14 }];
+        XLSX.utils.book_append_sheet(wb, ws3, '예산');
+    }
+
+    XLSX.writeFile(wb, `sisyphe_${getTodayStr()}.xlsx`);
+}
+
 function exportData() {
     const data = getData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
