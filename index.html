@@ -353,6 +353,17 @@
             padding: 7px 12px;
             border-radius: 6px;
             font-size: 0.85rem;
+            cursor: grab;
+            transition: background 0.15s, opacity 0.15s, transform 0.15s;
+        }
+        .cat-item:active { cursor: grabbing; }
+        .cat-item.dragging { opacity: 0.4; transform: scale(0.97); }
+        .cat-item.drag-over { background: var(--accent-color); color: #fff; border-radius: 6px; }
+        .cat-item .cat-handle {
+            color: var(--text-muted);
+            margin-right: 8px;
+            font-size: 0.85rem;
+            flex-shrink: 0;
         }
         .cat-item button {
             background: none;
@@ -363,6 +374,7 @@
             padding: 0 4px;
             opacity: 0.6;
             transition: opacity 0.2s;
+            flex-shrink: 0;
         }
         .cat-item button:hover { opacity: 1; }
         .cat-add {
@@ -1344,13 +1356,57 @@ function renderCategoryManager() {
     ['expense', 'income'].forEach(type => {
         const containerId = type === 'expense' ? 'expenseCatList' : 'incomeCatList';
         const cats = getCategories()[type] || [];
-        document.getElementById(containerId).innerHTML = cats.map(c =>
-            `<div class="cat-item">
-                <span>${c}</span>
+        const container = document.getElementById(containerId);
+        container.innerHTML = cats.map((c, i) =>
+            `<div class="cat-item" draggable="true" data-type="${type}" data-index="${i}" data-name="${c}">
+                <span><span class="cat-handle">&#9776;</span>${c}</span>
                 <button onclick="removeCategoryUI('${type}', '${c}')">&times;</button>
             </div>`
         ).join('');
+        initDragAndDrop(container, type);
     });
+}
+
+function initDragAndDrop(container, type) {
+    let dragIdx = null;
+
+    container.querySelectorAll('.cat-item').forEach(el => {
+        el.addEventListener('dragstart', e => {
+            dragIdx = parseInt(el.dataset.index);
+            el.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        el.addEventListener('dragend', () => {
+            el.classList.remove('dragging');
+            container.querySelectorAll('.cat-item').forEach(c => c.classList.remove('drag-over'));
+            dragIdx = null;
+        });
+        el.addEventListener('dragover', e => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            el.classList.add('drag-over');
+        });
+        el.addEventListener('dragleave', () => {
+            el.classList.remove('drag-over');
+        });
+        el.addEventListener('drop', e => {
+            e.preventDefault();
+            el.classList.remove('drag-over');
+            const dropIdx = parseInt(el.dataset.index);
+            if (dragIdx !== null && dragIdx !== dropIdx) {
+                reorderCategory(type, dragIdx, dropIdx);
+            }
+        });
+    });
+}
+
+function reorderCategory(type, fromIdx, toIdx) {
+    const data = getData();
+    const arr = data.categories[type];
+    const [item] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, item);
+    saveData(data);
+    renderCategoryManager();
 }
 
 function addCategoryUI(type) {
