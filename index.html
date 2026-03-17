@@ -1030,8 +1030,10 @@ function renderCalendar() {
             const net = data.income - data.expense;
             if (data.income > 0) amountsHtml += `<span class="cal-income">+${shortWon(data.income)}</span>`;
             if (data.expense > 0) amountsHtml += `<span class="cal-expense">-${shortWon(data.expense)}</span>`;
-            const netCls = net >= 0 ? 'positive' : 'negative';
-            amountsHtml += `<span class="cal-net ${netCls}">${net >= 0 ? '+' : ''}${shortWon(net)}</span>`;
+            if (data.income > 0 && data.expense > 0) {
+                const netCls = net >= 0 ? 'positive' : 'negative';
+                amountsHtml += `<span class="cal-net ${netCls}">${net >= 0 ? '+' : '-'}${shortWon(net)}</span>`;
+            }
         }
 
         html += `<div class="${cls}">
