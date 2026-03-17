@@ -452,6 +452,52 @@
         .cal-net.positive { color: var(--green); }
         .cal-net.negative { color: var(--red); }
 
+        /* Sync */
+        .sync-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .sync-row input[type="password"] {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-color);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+        }
+        .sync-row input[type="password"]:focus { border-color: var(--accent-color); }
+        .sync-status {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .sync-status.ok { color: var(--green); }
+        .sync-status.err { color: var(--red); }
+        .sync-status.syncing { color: var(--orange); }
+        .sync-badge {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            z-index: 100;
+            transition: all 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .sync-badge.show { opacity: 1; }
+        .sync-badge.ok { border-color: var(--green); color: var(--green); }
+        .sync-badge.err { border-color: var(--red); color: var(--red); }
+
         /* Empty state */
         .empty-state {
             text-align: center;
@@ -633,6 +679,18 @@
             </div>
         </div>
         <div class="settings-section">
+            <h3>GitHub 동기화</h3>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">
+                GitHub PAT를 입력하면 데이터가 자동으로 백업됩니다. (repo 권한 필요)
+            </p>
+            <div class="sync-row">
+                <input type="password" id="ghPat" placeholder="ghp_xxxxxxxxxxxx">
+                <button class="btn btn-primary btn-sm" onclick="savePatAndTest()">연결</button>
+                <button class="btn btn-ghost btn-sm" onclick="manualSync()">수동 동기화</button>
+            </div>
+            <div class="sync-status" id="syncStatus"></div>
+        </div>
+        <div class="settings-section">
             <h3>데이터 관리</h3>
             <div class="data-actions">
                 <button class="btn btn-primary" onclick="exportData()">JSON 내보내기</button>
@@ -646,6 +704,7 @@
     </section>
 </main>
 
+<div class="sync-badge" id="syncBadge"></div>
 <footer>Sisyphe &copy; 2026</footer>
 
 <script>
@@ -653,6 +712,9 @@
 // CONSTANTS
 // ============================================================
 const STORAGE_KEY = 'sisyphe_data';
+const PAT_KEY = 'sisyphe_gh_pat';
+const GH_REPO = 'sisyphe10/Sisyphe';
+const GH_DATA_PATH = 'data.json';
 const DEFAULT_CATEGORIES = {
     expense: ['식비', '카페/간식', '교통', '주거', '통신', '쇼핑', '의료', '교육', '여가/문화', '경조사', '저축/투자', '기타'],
     income: ['급여', '투자수익', '부수입', '기타']
@@ -673,6 +735,8 @@ let state = {
     editingId: null
 };
 let charts = { trend: null, category: null };
+let syncTimer = null;
+let ghFileSha = null;
 
 // ============================================================
 // DATA LAYER
@@ -687,6 +751,7 @@ function loadData() {
 
 function saveData(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    scheduleSyncToGitHub();
 }
 
 function getData() {
@@ -1349,10 +1414,169 @@ function resetData() {
 }
 
 // ============================================================
+// GITHUB SYNC
+// ============================================================
+function getGhPat() {
+    return localStorage.getItem(PAT_KEY) || '';
+}
+
+function showSyncBadge(msg, cls) {
+    const el = document.getElementById('syncBadge');
+    el.textContent = msg;
+    el.className = 'sync-badge show ' + (cls || '');
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => { el.classList.remove('show'); }, 2500);
+}
+
+function setSyncStatus(msg, cls) {
+    const el = document.getElementById('syncStatus');
+    if (el) { el.textContent = msg; el.className = 'sync-status ' + (cls || ''); }
+}
+
+async function ghApiFetch(path, options = {}) {
+    const pat = getGhPat();
+    if (!pat) return null;
+    const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+        headers: {
+            'Authorization': `token ${pat}`,
+            'Accept': 'application/vnd.github.v3+json',
+            ...options.headers
+        },
+        ...options
+    });
+    return res;
+}
+
+async function pullFromGitHub() {
+    const pat = getGhPat();
+    if (!pat) return;
+
+    try {
+        const res = await ghApiFetch(GH_DATA_PATH);
+        if (res.status === 200) {
+            const json = await res.json();
+            ghFileSha = json.sha;
+            const content = atob(json.content.replace(/\n/g, ''));
+            const remoteData = JSON.parse(new TextDecoder().decode(
+                Uint8Array.from(content, c => c.charCodeAt(0))
+            ));
+            if (remoteData && remoteData.transactions) {
+                saveDataLocal(remoteData);
+                showSyncBadge('GitHub에서 불러옴', 'ok');
+                return true;
+            }
+        } else if (res.status === 404) {
+            ghFileSha = null; // file doesn't exist yet
+        }
+    } catch (e) {
+        console.error('Pull from GitHub failed:', e);
+    }
+    return false;
+}
+
+function saveDataLocal(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+async function pushToGitHub() {
+    const pat = getGhPat();
+    if (!pat) return;
+
+    const data = getData();
+    const jsonStr = JSON.stringify(data, null, 2);
+    const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+
+    try {
+        const body = {
+            message: `sync: ${new Date().toISOString().slice(0, 16)}`,
+            content: encoded
+        };
+        if (ghFileSha) body.sha = ghFileSha;
+
+        const res = await ghApiFetch(GH_DATA_PATH, {
+            method: 'PUT',
+            body: JSON.stringify(body)
+        });
+
+        if (res.status === 200 || res.status === 201) {
+            const result = await res.json();
+            ghFileSha = result.content.sha;
+            showSyncBadge('동기화 완료', 'ok');
+        } else if (res.status === 409) {
+            // SHA conflict - re-fetch and retry
+            await pullFromGitHub();
+            return pushToGitHub();
+        } else {
+            const err = await res.text();
+            console.error('Push failed:', res.status, err);
+            showSyncBadge('동기화 실패', 'err');
+        }
+    } catch (e) {
+        console.error('Push to GitHub failed:', e);
+        showSyncBadge('동기화 실패', 'err');
+    }
+}
+
+function scheduleSyncToGitHub() {
+    if (!getGhPat()) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => pushToGitHub(), 2000);
+}
+
+async function savePatAndTest() {
+    const pat = document.getElementById('ghPat').value.trim();
+    if (!pat) return;
+
+    setSyncStatus('연결 테스트 중...', 'syncing');
+    localStorage.setItem(PAT_KEY, pat);
+
+    try {
+        const res = await fetch(`https://api.github.com/repos/${GH_REPO}`, {
+            headers: { 'Authorization': `token ${pat}` }
+        });
+        if (res.ok) {
+            setSyncStatus('연결 성공! 데이터를 동기화합니다...', 'ok');
+            await pushToGitHub();
+            setSyncStatus('연결 완료. 자동 동기화 활성화됨.', 'ok');
+        } else {
+            setSyncStatus('인증 실패. PAT를 확인하세요.', 'err');
+            localStorage.removeItem(PAT_KEY);
+        }
+    } catch (e) {
+        setSyncStatus('네트워크 오류: ' + e.message, 'err');
+        localStorage.removeItem(PAT_KEY);
+    }
+}
+
+async function manualSync() {
+    if (!getGhPat()) {
+        setSyncStatus('PAT를 먼저 입력하세요.', 'err');
+        return;
+    }
+    setSyncStatus('동기화 중...', 'syncing');
+    const pulled = await pullFromGitHub();
+    if (pulled) {
+        renderCurrentTab();
+        setSyncStatus('GitHub에서 최신 데이터를 불러왔습니다.', 'ok');
+    } else {
+        await pushToGitHub();
+        setSyncStatus('GitHub에 데이터를 업로드했습니다.', 'ok');
+    }
+}
+
+// ============================================================
 // INITIALIZATION
 // ============================================================
-function init() {
+async function init() {
     getData(); // seed defaults if needed
+
+    // Load PAT and try to pull from GitHub
+    const pat = getGhPat();
+    if (pat) {
+        document.getElementById('ghPat').value = pat;
+        const pulled = await pullFromGitHub();
+        if (pulled) setSyncStatus('GitHub 데이터 로드 완료', 'ok');
+    }
 
     // Set date default
     document.getElementById('txDate').value = getTodayStr();
