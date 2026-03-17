@@ -8,19 +8,18 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --text-color: #e0e0e0;
-            --text-muted: #888;
-            --accent-color: #4a90e2;
-            --green: #4caf50;
-            --red: #f44336;
-            --orange: #ff9800;
-            --purple: #ab47bc;
-            --cyan: #00bcd4;
-            --border: #444;
-            --input-bg: #383838;
-            --hover-bg: #333;
+            --bg-color: #111111;
+            --card-bg: #1c1c1c;
+            --text-color: #ffffff;
+            --text-muted: #999;
+            --accent: #45557f;
+            --income: #ff7a2f;
+            --expense: #f2576a;
+            --purple: #7f5996;
+            --navy: #45557f;
+            --border: #333;
+            --input-bg: #252525;
+            --hover-bg: #222;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,9 +38,9 @@
             text-align: center;
             margin-bottom: 24px;
             padding: 20px 0;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border);
         }
-        header h1 { font-size: 2.2rem; letter-spacing: 2px; }
+        header h1 { font-size: 2.2rem; letter-spacing: 2px; color: #fff; }
         header .subtitle { color: var(--text-muted); margin-top: 4px; font-size: 0.9rem; }
 
         /* Tab Navigation */
@@ -53,9 +52,9 @@
             margin-bottom: 20px;
         }
         nav button {
-            color: var(--accent-color);
+            color: var(--accent);
             background: transparent;
-            border: 1px solid var(--accent-color);
+            border: 1px solid var(--accent);
             padding: 8px 18px;
             border-radius: 20px;
             font-size: 0.9rem;
@@ -64,7 +63,7 @@
             font-family: inherit;
         }
         nav button:hover, nav button.active {
-            background: var(--accent-color);
+            background: var(--accent);
             color: #fff;
         }
 
@@ -87,7 +86,7 @@
             transition: all 0.2s;
             display: flex; align-items: center; justify-content: center;
         }
-        .month-selector button:hover { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+        .month-selector button:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
         .month-label { font-size: 1.15rem; font-weight: bold; min-width: 120px; text-align: center; }
 
         /* Section Tabs */
@@ -106,18 +105,18 @@
             background: var(--card-bg);
             border-radius: 12px;
             padding: 18px 16px;
-            border-left: 4px solid var(--accent-color);
+            border-left: 4px solid var(--accent);
             transition: transform 0.2s;
         }
         .summary-card:hover { transform: translateY(-2px); }
-        .summary-card.income { border-left-color: var(--green); }
-        .summary-card.expense { border-left-color: var(--red); }
-        .summary-card.net { border-left-color: var(--accent-color); }
-        .summary-card.balance { border-left-color: var(--orange); }
+        .summary-card.income { border-left-color: var(--income); }
+        .summary-card.expense { border-left-color: var(--expense); }
+        .summary-card.net { border-left-color: var(--purple); }
+        .summary-card.balance { border-left-color: var(--navy); }
         .summary-card .label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
         .summary-card .value { font-size: 1.3rem; font-weight: bold; }
-        .summary-card .value.positive { color: var(--green); }
-        .summary-card .value.negative { color: var(--red); }
+        .summary-card .value.positive { color: var(--income); }
+        .summary-card .value.negative { color: var(--expense); }
 
         /* Charts */
         .chart-row {
@@ -148,13 +147,13 @@
             padding: 10px 12px;
             text-align: left;
             font-size: 0.8rem;
-            color: var(--accent-color);
+            color: var(--accent);
             border-bottom: 2px solid var(--border);
             white-space: nowrap;
         }
         td {
             padding: 9px 12px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border);
             font-size: 0.85rem;
         }
         tr:hover { background: var(--hover-bg); }
@@ -166,10 +165,10 @@
             font-weight: bold;
             color: #fff;
         }
-        .badge.income { background: var(--green); }
-        .badge.expense { background: var(--red); }
-        .amount-income { color: var(--green); font-weight: 600; }
-        .amount-expense { color: var(--red); font-weight: 600; }
+        .badge.income { background: var(--income); }
+        .badge.expense { background: var(--expense); }
+        .amount-income { color: var(--income); font-weight: 600; }
+        .amount-expense { color: var(--expense); font-weight: 600; }
 
         /* Entry Form */
         .entry-form {
@@ -198,7 +197,7 @@
             outline: none;
             transition: border-color 0.2s;
         }
-        .form-group input:focus, .form-group select:focus { border-color: var(--accent-color); }
+        .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
         .form-group select option { background: var(--input-bg); color: var(--text-color); }
         .form-actions {
             display: flex;
@@ -215,10 +214,10 @@
             transition: all 0.2s;
             font-weight: 600;
         }
-        .btn-primary { background: var(--accent-color); color: #fff; }
-        .btn-primary:hover { background: #3a7bd5; }
-        .btn-danger { background: var(--red); color: #fff; }
-        .btn-danger:hover { background: #d32f2f; }
+        .btn-primary { background: var(--navy); color: #fff; }
+        .btn-primary:hover { background: #374a6b; }
+        .btn-danger { background: var(--expense); color: #fff; }
+        .btn-danger:hover { background: #d9456b; }
         .btn-ghost {
             background: transparent;
             border: 1px solid var(--border);
@@ -228,7 +227,7 @@
         .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
         .editing-indicator {
             display: none;
-            color: var(--orange);
+            color: var(--income);
             font-size: 0.85rem;
             font-weight: 600;
         }
@@ -252,7 +251,7 @@
             transition: all 0.2s;
             font-family: inherit;
         }
-        .quick-cat:hover { border-color: var(--accent-color); color: var(--accent-color); }
+        .quick-cat:hover { border-color: var(--accent); color: var(--accent); }
 
         /* Budget */
         .budget-summary {
@@ -283,9 +282,9 @@
             transition: width 0.4s ease;
             min-width: 0;
         }
-        .progress-green { background: var(--green); }
-        .progress-orange { background: var(--orange); }
-        .progress-red { background: var(--red); }
+        .progress-green { background: var(--navy); }
+        .progress-orange { background: var(--income); }
+        .progress-red { background: var(--expense); }
 
         .budget-list {
             display: flex;
@@ -321,7 +320,7 @@
             font-family: inherit;
             outline: none;
         }
-        .budget-item-header input:focus { border-color: var(--accent-color); }
+        .budget-item-header input:focus { border-color: var(--accent); }
         .budget-item-stats {
             display: flex;
             justify-content: space-between;
@@ -343,7 +342,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
-        .cat-column h4 { font-size: 0.85rem; margin-bottom: 10px; color: var(--accent-color); }
+        .cat-column h4 { font-size: 0.85rem; margin-bottom: 10px; color: var(--accent); }
         .cat-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
         .cat-item {
             display: flex;
@@ -358,7 +357,7 @@
         }
         .cat-item:active { cursor: grabbing; }
         .cat-item.dragging { opacity: 0.4; transform: scale(0.97); }
-        .cat-item.drag-over { background: var(--accent-color); color: #fff; border-radius: 6px; }
+        .cat-item.drag-over { background: var(--navy); color: #fff; border-radius: 6px; }
         .cat-item .cat-handle {
             color: var(--text-muted);
             margin-right: 8px;
@@ -368,7 +367,7 @@
         .cat-item button {
             background: none;
             border: none;
-            color: var(--red);
+            color: var(--expense);
             cursor: pointer;
             font-size: 0.9rem;
             padding: 0 4px;
@@ -392,7 +391,7 @@
             font-family: inherit;
             outline: none;
         }
-        .cat-add input:focus { border-color: var(--accent-color); }
+        .cat-add input:focus { border-color: var(--accent); }
         .data-actions {
             display: flex;
             gap: 10px;
@@ -429,8 +428,8 @@
             color: var(--text-muted);
             padding: 6px 0;
         }
-        .cal-header.sun { color: var(--red); }
-        .cal-header.sat { color: var(--accent-color); }
+        .cal-header.sun { color: var(--expense); }
+        .cal-header.sat { color: var(--navy); }
         .cal-cell {
             background: var(--input-bg);
             border-radius: 6px;
@@ -439,14 +438,14 @@
             position: relative;
         }
         .cal-cell.empty { background: transparent; }
-        .cal-cell.today { border: 1px solid var(--accent-color); }
+        .cal-cell.today { border: 1px solid var(--purple); }
         .cal-day {
             font-size: 0.75rem;
             font-weight: 600;
             margin-bottom: 2px;
         }
-        .cal-cell.sun .cal-day { color: var(--red); }
-        .cal-cell.sat .cal-day { color: var(--accent-color); }
+        .cal-cell.sun .cal-day { color: var(--expense); }
+        .cal-cell.sat .cal-day { color: var(--navy); }
         .cal-amounts {
             display: flex;
             flex-direction: column;
@@ -459,11 +458,11 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .cal-income { color: var(--green); }
-        .cal-expense { color: var(--red); }
+        .cal-income { color: var(--income); }
+        .cal-expense { color: var(--expense); }
         .cal-net { color: var(--text-muted); font-weight: 600; }
-        .cal-net.positive { color: var(--green); }
-        .cal-net.negative { color: var(--red); }
+        .cal-net.positive { color: var(--income); }
+        .cal-net.negative { color: var(--expense); }
 
         /* Sync */
         .sync-row {
@@ -483,15 +482,15 @@
             font-family: inherit;
             outline: none;
         }
-        .sync-row input[type="password"]:focus { border-color: var(--accent-color); }
+        .sync-row input[type="password"]:focus { border-color: var(--accent); }
         .sync-status {
             font-size: 0.8rem;
             color: var(--text-muted);
             margin-top: 4px;
         }
-        .sync-status.ok { color: var(--green); }
-        .sync-status.err { color: var(--red); }
-        .sync-status.syncing { color: var(--orange); }
+        .sync-status.ok { color: var(--income); }
+        .sync-status.err { color: var(--expense); }
+        .sync-status.syncing { color: var(--purple); }
         .sync-badge {
             position: fixed;
             bottom: 16px;
@@ -508,8 +507,8 @@
             pointer-events: none;
         }
         .sync-badge.show { opacity: 1; }
-        .sync-badge.ok { border-color: var(--green); color: var(--green); }
-        .sync-badge.err { border-color: var(--red); color: var(--red); }
+        .sync-badge.ok { border-color: var(--income); color: var(--income); }
+        .sync-badge.err { border-color: var(--expense); color: var(--expense); }
 
         /* Empty state */
         .empty-state {
@@ -734,9 +733,10 @@ const DEFAULT_CATEGORIES = {
     income: ['급여', '투자수익', '부수입', '기타']
 };
 const CATEGORY_COLORS = [
-    '#4a90e2', '#f44336', '#4caf50', '#ff9800', '#ab47bc',
-    '#00bcd4', '#ff5722', '#8bc34a', '#e91e63', '#009688',
-    '#ffc107', '#795548', '#607d8b', '#3f51b5', '#cddc39'
+    '#ff7a2f', '#f2576a', '#7f5996', '#45557f',
+    '#e8945a', '#d4768a', '#a07db3', '#6b7a9e',
+    '#ffab73', '#f78da0', '#b896cc', '#8ea0c4',
+    '#cc6225', '#c04458', '#634578', '#334466'
 ];
 
 // ============================================================
@@ -1067,24 +1067,24 @@ function renderTrendChart() {
         data: {
             labels,
             datasets: [
-                { label: '수입', data: incomeData, backgroundColor: 'rgba(74,144,226,0.7)', borderRadius: 4 },
-                { label: '지출', data: expenseData, backgroundColor: 'rgba(244,67,54,0.7)', borderRadius: 4 }
+                { label: '수입', data: incomeData, backgroundColor: 'rgba(255,122,47,0.8)', borderRadius: 4 },
+                { label: '지출', data: expenseData, backgroundColor: 'rgba(242,87,106,0.8)', borderRadius: 4 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { labels: { color: '#e0e0e0', font: { size: 12 } } },
+                legend: { labels: { color: '#ffffff', font: { size: 12 } } },
                 tooltip: {
                     callbacks: { label: ctx => `${ctx.dataset.label}: ${formatWon(ctx.raw)}` }
                 }
             },
             scales: {
-                x: { ticks: { color: '#888' }, grid: { color: '#333' } },
+                x: { ticks: { color: '#999' }, grid: { color: '#2a2a2a' } },
                 y: {
-                    ticks: { color: '#888', callback: v => v >= 10000 ? (v / 10000) + '만' : v.toLocaleString() },
-                    grid: { color: '#333' }
+                    ticks: { color: '#999', callback: v => v >= 10000 ? (v / 10000) + '만' : v.toLocaleString() },
+                    grid: { color: '#2a2a2a' }
                 }
             }
         }
@@ -1121,7 +1121,7 @@ function renderCategoryChart() {
             plugins: {
                 legend: {
                     position: 'right',
-                    labels: { color: '#e0e0e0', font: { size: 11 }, padding: 8, boxWidth: 12 }
+                    labels: { color: '#ffffff', font: { size: 11 }, padding: 8, boxWidth: 12 }
                 },
                 tooltip: {
                     callbacks: { label: ctx => `${ctx.label}: ${formatWon(ctx.raw)}` }
@@ -1273,7 +1273,7 @@ function renderTransactionHistory() {
             <td style="color:var(--text-muted)">${tx.memo || ''}</td>
             <td>
                 <button class="btn btn-ghost btn-sm" onclick="startEdit('${tx.id}')">&#9998;</button>
-                <button class="btn btn-ghost btn-sm" onclick="confirmDelete('${tx.id}')" style="color:var(--red)">&#10005;</button>
+                <button class="btn btn-ghost btn-sm" onclick="confirmDelete('${tx.id}')" style="color:var(--expense)">&#10005;</button>
             </td>
         </tr>`;
     });
@@ -1299,7 +1299,7 @@ function renderBudgetSummary() {
     document.getElementById('budgetSpent').textContent = formatWon(totalSpent);
     document.getElementById('budgetTotal').textContent = totalBudget > 0 ? formatWon(totalBudget) : '미설정';
     document.getElementById('budgetPct').textContent = totalBudget > 0 ? pct + '%' : '-';
-    document.getElementById('budgetPct').style.color = pct > 100 ? 'var(--red)' : pct >= 80 ? 'var(--orange)' : 'var(--green)';
+    document.getElementById('budgetPct').style.color = pct > 100 ? 'var(--expense)' : pct >= 80 ? 'var(--income)' : 'var(--navy)';
 
     const bar = document.getElementById('budgetBar');
     bar.style.width = Math.min(pct, 100) + '%';
