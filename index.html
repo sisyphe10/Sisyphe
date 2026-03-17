@@ -515,6 +515,28 @@
         .sync-badge.ok { border-color: var(--income); color: var(--income); }
         .sync-badge.err { border-color: var(--expense); color: var(--expense); }
 
+        /* Sync Steps */
+        .sync-steps { }
+        .sync-step {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+        .sync-step-num {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
         /* Empty state */
         .empty-state {
             text-align: center;
@@ -697,15 +719,49 @@
         </div>
         <div class="settings-section">
             <h3>GitHub 동기화</h3>
-            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">
-                GitHub PAT를 입력하면 데이터가 자동으로 백업됩니다. (repo 권한 필요)
-            </p>
-            <div class="sync-row">
-                <input type="password" id="ghPat" placeholder="ghp_xxxxxxxxxxxx">
-                <button class="btn btn-primary btn-sm" onclick="savePatAndTest()">연결</button>
-                <button class="btn btn-ghost btn-sm" onclick="manualSync()">수동 동기화</button>
+            <div id="syncConnected" style="display:none;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                    <span style="color:var(--income);font-size:0.85rem;font-weight:600;">연결됨</span>
+                    <button class="btn btn-ghost btn-sm" onclick="manualSync()">수동 동기화</button>
+                    <button class="btn btn-ghost btn-sm" onclick="disconnectPat()" style="color:var(--expense);">연결 해제</button>
+                </div>
+                <div class="sync-status" id="syncStatus"></div>
             </div>
-            <div class="sync-status" id="syncStatus"></div>
+            <div id="syncSetup">
+                <div class="sync-steps">
+                    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">
+                        다른 기기에서도 데이터를 보려면 GitHub 토큰을 한 번만 연결하세요.
+                    </p>
+                    <div class="sync-step">
+                        <span class="sync-step-num">1</span>
+                        <div>
+                            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
+                               class="btn btn-primary btn-sm" style="display:inline-block;margin-bottom:6px;">GitHub 토큰 만들기</a>
+                            <div style="font-size:0.78rem;color:var(--text-muted);">
+                                Token name: <b>Sisyphe</b> &rarr; Expiration: <b>No expiration</b><br>
+                                Repository access: <b>Only select repositories</b> &rarr; <b>Sisyphe</b><br>
+                                Permissions &rarr; Contents: <b>Read and write</b> &rarr; <b>Generate token</b>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sync-step">
+                        <span class="sync-step-num">2</span>
+                        <div>
+                            <span style="font-size:0.85rem;">생성된 토큰을 복사해서 아래에 붙여넣기</span>
+                        </div>
+                    </div>
+                    <div class="sync-step" style="margin-bottom:0;">
+                        <span class="sync-step-num">3</span>
+                        <div style="flex:1;">
+                            <div class="sync-row" style="margin-bottom:0;">
+                                <input type="password" id="ghPat" placeholder="github_pat_xxxxxxxxxxxx">
+                                <button class="btn btn-primary btn-sm" onclick="savePatAndTest()">연결</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sync-status" id="syncStatusSetup"></div>
+            </div>
         </div>
         <div class="settings-section">
             <h3>데이터 관리</h3>
@@ -1544,8 +1600,16 @@ function showSyncBadge(msg, cls) {
 }
 
 function setSyncStatus(msg, cls) {
-    const el = document.getElementById('syncStatus');
-    if (el) { el.textContent = msg; el.className = 'sync-status ' + (cls || ''); }
+    ['syncStatus', 'syncStatusSetup'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.textContent = msg; el.className = 'sync-status ' + (cls || ''); }
+    });
+}
+
+function updateSyncUI() {
+    const connected = !!getGhPat();
+    document.getElementById('syncConnected').style.display = connected ? '' : 'none';
+    document.getElementById('syncSetup').style.display = connected ? 'none' : '';
 }
 
 async function ghApiFetch(path, options = {}) {
@@ -1652,15 +1716,25 @@ async function savePatAndTest() {
         if (res.ok) {
             setSyncStatus('연결 성공! 데이터를 동기화합니다...', 'ok');
             await pushToGitHub();
-            setSyncStatus('연결 완료. 자동 동기화 활성화됨.', 'ok');
+            setSyncStatus('자동 동기화 활성화됨.', 'ok');
+            updateSyncUI();
         } else {
-            setSyncStatus('인증 실패. PAT를 확인하세요.', 'err');
+            setSyncStatus('인증 실패. 토큰을 확인하세요.', 'err');
             localStorage.removeItem(PAT_KEY);
         }
     } catch (e) {
         setSyncStatus('네트워크 오류: ' + e.message, 'err');
         localStorage.removeItem(PAT_KEY);
     }
+}
+
+function disconnectPat() {
+    if (!confirm('동기화 연결을 해제하시겠습니까? (로컬 데이터는 유지됩니다)')) return;
+    localStorage.removeItem(PAT_KEY);
+    ghFileSha = null;
+    document.getElementById('ghPat').value = '';
+    setSyncStatus('', '');
+    updateSyncUI();
 }
 
 async function manualSync() {
@@ -1692,6 +1766,7 @@ async function init() {
         const pulled = await pullFromGitHub();
         if (pulled) setSyncStatus('GitHub 데이터 로드 완료', 'ok');
     }
+    updateSyncUI();
 
     // Set date default
     document.getElementById('txDate').value = getTodayStr();
