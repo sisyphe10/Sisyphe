@@ -47,6 +47,14 @@
       "category": "쇼핑",
       "amount": 844000,
       "memo": "무테안경"
+    },
+    {
+      "id": "20260318130815-6349c6c1",
+      "date": "2026-03-18",
+      "type": "expense",
+      "category": "취미/여가",
+      "amount": 94619,
+      "memo": "붉은사막"
     }
   ],
   "budgets": {},
