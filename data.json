@@ -7,6 +7,14 @@
       "category": "쇼핑",
       "amount": 14700,
       "memo": "무인양품"
+    },
+    {
+      "id": "20260318043617-96970fbf",
+      "date": "2026-03-18",
+      "type": "income",
+      "category": "기타",
+      "amount": 15090,
+      "memo": "인터넷비 환불"
     }
   ],
   "budgets": {},
