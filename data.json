@@ -15,6 +15,14 @@
       "category": "기타",
       "amount": 15090,
       "memo": "인터넷비 환불"
+    },
+    {
+      "id": "20260318044045-339d0bf9",
+      "date": "2026-03-18",
+      "type": "expense",
+      "category": "교통",
+      "amount": 9800,
+      "memo": "택시비"
     }
   ],
   "budgets": {},
