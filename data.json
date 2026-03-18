@@ -23,6 +23,14 @@
       "category": "교통",
       "amount": 9800,
       "memo": "택시비"
+    },
+    {
+      "id": "20260318044055-10f0e8b8",
+      "date": "2026-03-18",
+      "type": "expense",
+      "category": "쇼핑",
+      "amount": 175000,
+      "memo": "COS 바지"
     }
   ],
   "budgets": {},
