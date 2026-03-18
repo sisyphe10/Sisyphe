@@ -31,6 +31,14 @@
       "category": "쇼핑",
       "amount": 175000,
       "memo": "COS 바지"
+    },
+    {
+      "id": "20260318080600-04c218a2",
+      "date": "2026-03-18",
+      "type": "expense",
+      "category": "쇼핑",
+      "amount": 884000,
+      "memo": "무테안경"
     }
   ],
   "budgets": {},
