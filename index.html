@@ -1681,7 +1681,7 @@ async function ghApiFetch(path, options = {}) {
     return res;
 }
 
-async function pullFromGitHub() {
+async function pullFromGitHub(force = false) {
     const pat = getGhPat();
     if (!pat) return;
 
@@ -1695,12 +1695,39 @@ async function pullFromGitHub() {
                 Uint8Array.from(content, c => c.charCodeAt(0))
             ));
             if (remoteData && remoteData.transactions) {
+                const localData = loadData();
+                const localCount = localData ? (localData.transactions || []).length : 0;
+                const remoteCount = remoteData.transactions.length;
+
+                // Merge: combine transactions by ID (union)
+                if (localData && localCount > 0 && remoteCount > 0) {
+                    const localIds = new Set(localData.transactions.map(t => t.id));
+                    const remoteIds = new Set(remoteData.transactions.map(t => t.id));
+                    const merged = [...localData.transactions];
+                    remoteData.transactions.forEach(t => {
+                        if (!localIds.has(t.id)) merged.push(t);
+                    });
+                    remoteData.transactions = merged;
+                    // Keep richer categories (more items wins)
+                    if (localData.categories) {
+                        ['expense', 'income'].forEach(type => {
+                            const lc = (localData.categories[type] || []);
+                            const rc = (remoteData.categories[type] || []);
+                            if (lc.length > rc.length) remoteData.categories[type] = lc;
+                        });
+                    }
+                    // Merge budgets
+                    if (localData.budgets) {
+                        remoteData.budgets = { ...localData.budgets, ...remoteData.budgets };
+                    }
+                }
+
                 saveDataLocal(remoteData);
-                showSyncBadge('GitHub에서 불러옴', 'ok');
+                showSyncBadge('동기화 완료', 'ok');
                 return true;
             }
         } else if (res.status === 404) {
-            ghFileSha = null; // file doesn't exist yet
+            ghFileSha = null;
         }
     } catch (e) {
         console.error('Pull from GitHub failed:', e);
