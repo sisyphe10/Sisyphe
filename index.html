@@ -379,6 +379,18 @@
             flex-shrink: 0;
         }
         .cat-item button:hover { opacity: 1; }
+        .cat-actions { display: flex; gap: 2px; flex-shrink: 0; }
+        .cat-edit-input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--navy);
+            color: var(--text-color);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+        }
         .cat-add {
             display: flex;
             gap: 6px;
@@ -1422,8 +1434,11 @@ function renderCategoryManager() {
         const container = document.getElementById(containerId);
         container.innerHTML = cats.map((c, i) =>
             `<div class="cat-item" draggable="true" data-type="${type}" data-index="${i}" data-name="${c}">
-                <span><span class="cat-handle">&#9776;</span>${c}</span>
-                <button onclick="removeCategoryUI('${type}', '${c}')">&times;</button>
+                <span><span class="cat-handle">&#9776;</span><span class="cat-label">${c}</span></span>
+                <span class="cat-actions">
+                    <button onclick="startEditCategory('${type}', ${i}, '${c.replace(/'/g, "\\'")}')" title="수정">&#9998;</button>
+                    <button onclick="removeCategoryUI('${type}', '${c.replace(/'/g, "\\'")}')">&times;</button>
+                </span>
             </div>`
         ).join('');
         initDragAndDrop(container, type);
@@ -1468,6 +1483,50 @@ function reorderCategory(type, fromIdx, toIdx) {
     const arr = data.categories[type];
     const [item] = arr.splice(fromIdx, 1);
     arr.splice(toIdx, 0, item);
+    saveData(data);
+    renderCategoryManager();
+}
+
+function startEditCategory(type, index, oldName) {
+    const containerId = type === 'expense' ? 'expenseCatList' : 'incomeCatList';
+    const container = document.getElementById(containerId);
+    const item = container.children[index];
+    if (!item) return;
+
+    item.draggable = false;
+    item.innerHTML = `
+        <input type="text" class="cat-edit-input" value="${oldName}"
+            onkeydown="if(event.key==='Enter')saveEditCategory('${type}',${index},'${oldName.replace(/'/g, "\\'")}',this.value);if(event.key==='Escape')renderCategoryManager();">
+        <span class="cat-actions">
+            <button onclick="saveEditCategory('${type}',${index},'${oldName.replace(/'/g, "\\'")}',this.parentElement.previousElementSibling.value)" title="저장" style="color:var(--income);">&#10003;</button>
+            <button onclick="renderCategoryManager()" title="취소">&times;</button>
+        </span>`;
+    item.querySelector('input').focus();
+    item.querySelector('input').select();
+}
+
+function saveEditCategory(type, index, oldName, newName) {
+    newName = newName.trim();
+    if (!newName || newName === oldName) { renderCategoryManager(); return; }
+
+    const data = getData();
+    const cats = data.categories[type];
+    if (cats.includes(newName)) { alert('이미 존재하는 카테고리입니다.'); return; }
+
+    // Rename in categories
+    cats[index] = newName;
+
+    // Rename in all transactions
+    data.transactions.forEach(tx => {
+        if (tx.type === type && tx.category === oldName) tx.category = newName;
+    });
+
+    // Rename in budgets (expense only)
+    if (type === 'expense' && data.budgets[oldName] !== undefined) {
+        data.budgets[newName] = data.budgets[oldName];
+        delete data.budgets[oldName];
+    }
+
     saveData(data);
     renderCategoryManager();
 }
