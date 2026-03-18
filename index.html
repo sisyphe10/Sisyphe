@@ -367,18 +367,7 @@
             font-size: 0.85rem;
             flex-shrink: 0;
         }
-        .cat-item button {
-            background: none;
-            border: none;
-            color: var(--expense);
-            cursor: pointer;
-            font-size: 0.9rem;
-            padding: 0 4px;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-            flex-shrink: 0;
-        }
-        .cat-item button:hover { opacity: 1; }
+        .cat-item .cat-actions .btn { flex-shrink: 0; }
         .cat-actions { display: flex; gap: 2px; flex-shrink: 0; }
         .cat-edit-input {
             flex: 1;
@@ -1443,8 +1432,8 @@ function renderCategoryManager() {
             `<div class="cat-item" draggable="true" data-type="${type}" data-index="${i}" data-name="${c}">
                 <span><span class="cat-handle">&#9776;</span><span class="cat-label">${c}</span></span>
                 <span class="cat-actions">
-                    <button onclick="startEditCategory('${type}', ${i}, '${c.replace(/'/g, "\\'")}')" title="수정">&#9998;</button>
-                    <button onclick="removeCategoryUI('${type}', '${c.replace(/'/g, "\\'")}')">&times;</button>
+                    <button class="btn btn-ghost btn-sm" onclick="startEditCategory('${type}', ${i}, '${c.replace(/'/g, "\\'")}')" title="수정">&#9998;</button>
+                    <button class="btn btn-ghost btn-sm" onclick="removeCategoryUI('${type}', '${c.replace(/'/g, "\\'")}')" style="color:var(--expense)">&#10005;</button>
                 </span>
             </div>`
         ).join('');
@@ -1505,8 +1494,8 @@ function startEditCategory(type, index, oldName) {
         <input type="text" class="cat-edit-input" value="${oldName}"
             onkeydown="if(event.key==='Enter')saveEditCategory('${type}',${index},'${oldName.replace(/'/g, "\\'")}',this.value);if(event.key==='Escape')renderCategoryManager();">
         <span class="cat-actions">
-            <button onclick="saveEditCategory('${type}',${index},'${oldName.replace(/'/g, "\\'")}',this.parentElement.previousElementSibling.value)" title="저장" style="color:var(--income);">&#10003;</button>
-            <button onclick="renderCategoryManager()" title="취소">&times;</button>
+            <button class="btn btn-ghost btn-sm" onclick="saveEditCategory('${type}',${index},'${oldName.replace(/'/g, "\\'")}',this.parentElement.previousElementSibling.value)" title="저장" style="color:var(--income);">&#10003;</button>
+            <button class="btn btn-ghost btn-sm" onclick="renderCategoryManager()" title="취소" style="color:var(--expense);">&#10005;</button>
         </span>`;
     item.querySelector('input').focus();
     item.querySelector('input').select();
