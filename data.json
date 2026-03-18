@@ -1,0 +1,17 @@
+{
+  "transactions": [
+    {
+      "id": "20260318043547-155f1aaf",
+      "date": "2026-03-18",
+      "type": "expense",
+      "category": "쇼핑",
+      "amount": 14700,
+      "memo": "무인양품"
+    }
+  ],
+  "budgets": {},
+  "categories": {
+    "expense": [],
+    "income": []
+  }
+}
