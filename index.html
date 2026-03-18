@@ -1715,8 +1715,14 @@ async function savePatAndTest() {
         });
         if (res.ok) {
             setSyncStatus('연결 성공! 데이터를 동기화합니다...', 'ok');
-            await pushToGitHub();
-            setSyncStatus('자동 동기화 활성화됨.', 'ok');
+            const pulled = await pullFromGitHub();
+            if (pulled) {
+                renderCurrentTab();
+                setSyncStatus('GitHub에서 데이터를 불러왔습니다.', 'ok');
+            } else {
+                await pushToGitHub();
+                setSyncStatus('자동 동기화 활성화됨.', 'ok');
+            }
             updateSyncUI();
         } else {
             setSyncStatus('인증 실패. 토큰을 확인하세요.', 'err');
