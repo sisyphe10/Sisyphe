@@ -39,6 +39,14 @@
       "category": "쇼핑",
       "amount": 884000,
       "memo": "무테안경"
+    },
+    {
+      "id": "20260318125618-9291898e",
+      "date": "2026-03-18",
+      "type": "expense",
+      "category": "쇼핑",
+      "amount": 844000,
+      "memo": "무테안경"
     }
   ],
   "budgets": {},
