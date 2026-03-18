@@ -116,9 +116,9 @@
         .summary-card.net { border-left-color: var(--purple); }
         .summary-card.balance { border-left-color: var(--navy); }
         .summary-card .label { font-size: 0.8rem; color: #fff; margin-bottom: 4px; font-weight: 600; }
-        .summary-card .value { font-size: 1.3rem; font-weight: bold; }
-        .summary-card .value.positive { color: var(--income); }
-        .summary-card .value.negative { color: var(--expense); }
+        .summary-card .value { font-size: 1.3rem; font-weight: bold; color: #fff; }
+        .summary-card .value.positive { color: #fff; }
+        .summary-card .value.negative { color: #fff; }
 
         /* Charts */
         .chart-row {
@@ -170,8 +170,8 @@
         }
         .badge.income { background: var(--income); }
         .badge.expense { background: var(--expense); }
-        .amount-income { color: var(--income); font-weight: 600; }
-        .amount-expense { color: var(--expense); font-weight: 600; }
+        .amount-income { color: #fff; font-weight: 600; }
+        .amount-expense { color: #fff; font-weight: 600; }
 
         /* Entry Form */
         .entry-form {
@@ -927,7 +927,7 @@ function removeCategory(type, name) {
 function formatWon(amount) {
     if (amount == null || isNaN(amount)) return '-';
     const sign = amount < 0 ? '-' : '';
-    return sign + '₩' + Math.abs(amount).toLocaleString('ko-KR');
+    return sign + Math.abs(amount).toLocaleString('ko-KR');
 }
 
 function formatDate(dateStr) {
