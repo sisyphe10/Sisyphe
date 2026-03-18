@@ -673,7 +673,8 @@
                     </div>
                     <div class="form-group">
                         <label>메모</label>
-                        <input type="text" id="txMemo" placeholder="선택사항">
+                        <input type="text" id="txMemo" placeholder="선택사항" list="memoSuggestions" autocomplete="off">
+                        <datalist id="memoSuggestions"></datalist>
                     </div>
                 </div>
                 <div class="form-actions">
@@ -1239,7 +1240,13 @@ function renderRecentTransactions() {
 function renderEntryTab() {
     renderCategoryDropdown();
     renderQuickCategories();
+    renderMemoSuggestions();
     renderTransactionHistory();
+}
+
+function renderMemoSuggestions() {
+    const memos = [...new Set(getAllTransactions().map(t => t.memo).filter(Boolean))].sort();
+    document.getElementById('memoSuggestions').innerHTML = memos.map(m => `<option value="${m}">`).join('');
 }
 
 function renderCategoryDropdown() {
