@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sisyphe - 가계부</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-color: #111111;
@@ -44,27 +43,18 @@
         }
         header h1 { font-size: 2.2rem; letter-spacing: 2px; color: #fff; }
         header .subtitle { color: var(--text-muted); margin-top: 4px; font-size: 0.9rem; }
-
-        /* Tab Navigation */
-        nav {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        nav button {
-            color: var(--purple-light);
-            background: transparent;
+        header .sheet-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: var(--accent-light);
+            font-size: 0.85rem;
+            text-decoration: none;
             border: 1px solid var(--navy);
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
+            padding: 4px 14px;
+            border-radius: 16px;
             transition: all 0.2s;
-            font-family: inherit;
         }
-        nav button:hover, nav button.active {
+        header .sheet-link:hover {
             background: var(--navy);
             color: #fff;
         }
@@ -91,9 +81,6 @@
         .month-selector button:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
         .month-label { font-size: 1.15rem; font-weight: bold; min-width: 120px; text-align: center; }
 
-        /* Section Tabs */
-        .tab-section { display: none; animation: fadeIn 0.25s ease; }
-        .tab-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Summary Cards */
@@ -173,89 +160,6 @@
         .amount-income { color: #fff; font-weight: 600; }
         .amount-expense { color: #fff; font-weight: 600; }
 
-        /* Entry Form */
-        .entry-form {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-        .entry-form h3 { font-size: 0.95rem; color: var(--purple-light); margin-bottom: 16px; font-weight: 700; }
-        .form-row {
-            display: grid;
-            grid-template-columns: 130px 100px 1fr 140px 1fr;
-            gap: 10px;
-            align-items: end;
-        }
-        .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .form-group label { font-size: 0.75rem; color: #ccc; }
-        .form-group input, .form-group select {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            color: var(--text-color);
-            border-radius: 8px;
-            padding: 9px 12px;
-            font-size: 0.9rem;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .form-group input:focus, .form-group select:focus { border-color: var(--navy); }
-        .form-group select option { background: var(--input-bg); color: var(--text-color); }
-        .form-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 14px;
-        }
-        .btn {
-            padding: 9px 20px;
-            border-radius: 8px;
-            border: none;
-            font-size: 0.9rem;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 600;
-        }
-        .btn-primary { background: var(--navy); color: #fff; }
-        .btn-primary:hover { background: #374a6b; }
-        .btn-danger { background: var(--expense); color: #fff; }
-        .btn-danger:hover { background: #d9456b; }
-        .btn-ghost {
-            background: transparent;
-            border: 1px solid #555;
-            color: #ccc;
-        }
-        .btn-ghost:hover { border-color: #fff; color: #fff; }
-        .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
-        .editing-indicator {
-            display: none;
-            color: var(--income);
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .editing-indicator.show { display: inline; }
-
-        /* Quick Categories */
-        .quick-cats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        .quick-cat {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 5px 12px;
-            border-radius: 14px;
-            font-size: 0.78rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-        .quick-cat:hover { border-color: var(--navy); color: var(--purple-light); }
-
         /* Budget */
         .budget-summary {
             background: var(--card-bg);
@@ -306,110 +210,12 @@
             margin-bottom: 8px;
         }
         .budget-item-header .cat-name { font-weight: 600; font-size: 0.9rem; }
-        .budget-item-header .budget-input-wrap {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .budget-item-header input {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            color: var(--text-color);
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 0.85rem;
-            width: 120px;
-            text-align: right;
-            font-family: inherit;
-            outline: none;
-        }
-        .budget-item-header input:focus { border-color: var(--navy); }
         .budget-item-stats {
             display: flex;
             justify-content: space-between;
             font-size: 0.8rem;
             color: var(--text-muted);
             margin-top: 6px;
-        }
-
-        /* Settings */
-        .settings-section {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-        }
-        .settings-section h3 { font-size: 0.95rem; color: var(--purple-light); margin-bottom: 14px; font-weight: 700; }
-        .cat-columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .cat-column h4 { font-size: 0.85rem; margin-bottom: 10px; color: var(--purple-light); }
-        .cat-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-        .cat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--input-bg);
-            padding: 7px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: grab;
-            transition: background 0.15s, opacity 0.15s, transform 0.15s;
-        }
-        .cat-item:active { cursor: grabbing; }
-        .cat-item.dragging { opacity: 0.4; transform: scale(0.97); }
-        .cat-item.drag-over { background: var(--navy); color: #fff; border-radius: 6px; }
-        .cat-item .cat-handle {
-            color: #777;
-            margin-right: 8px;
-            font-size: 0.85rem;
-            flex-shrink: 0;
-        }
-        .cat-item .cat-actions .btn { flex-shrink: 0; }
-        .cat-actions { display: flex; gap: 2px; flex-shrink: 0; }
-        .cat-edit-input {
-            flex: 1;
-            background: var(--input-bg);
-            border: 1px solid var(--navy);
-            color: var(--text-color);
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 0.85rem;
-            font-family: inherit;
-            outline: none;
-        }
-        .cat-add {
-            display: flex;
-            gap: 6px;
-        }
-        .cat-add input {
-            flex: 1;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            color: var(--text-color);
-            border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 0.85rem;
-            font-family: inherit;
-            outline: none;
-        }
-        .cat-add input:focus { border-color: var(--navy); }
-        .data-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .file-input-wrap {
-            position: relative;
-        }
-        .file-input-wrap input[type="file"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
         }
 
         /* Calendar */
@@ -470,80 +276,20 @@
         .cal-net.positive { color: var(--income); }
         .cal-net.negative { color: var(--expense); }
 
-        /* Sync */
-        .sync-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .sync-row input[type="password"] {
-            flex: 1;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            color: var(--text-color);
-            border-radius: 8px;
-            padding: 9px 12px;
-            font-size: 0.9rem;
-            font-family: inherit;
-            outline: none;
-        }
-        .sync-row input[type="password"]:focus { border-color: var(--navy); }
-        .sync-status {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-        .sync-status.ok { color: var(--income); }
-        .sync-status.err { color: var(--expense); }
-        .sync-status.syncing { color: var(--purple); }
-        .sync-badge {
-            position: fixed;
-            bottom: 16px;
-            right: 16px;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            z-index: 100;
-            transition: all 0.3s;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .sync-badge.show { opacity: 1; }
-        .sync-badge.ok { border-color: var(--income); color: var(--income); }
-        .sync-badge.err { border-color: var(--expense); color: var(--expense); }
-
-        /* Sync Steps */
-        .sync-steps { }
-        .sync-step {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            margin-bottom: 14px;
-        }
-        .sync-step-num {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: var(--navy);
-            color: #fff;
-            font-size: 0.8rem;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
         /* Empty state */
         .empty-state {
             text-align: center;
             color: var(--text-muted);
             padding: 40px 20px;
             font-size: 0.9rem;
+        }
+
+        /* Loading state */
+        .loading-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 60px 20px;
+            font-size: 0.95rem;
         }
 
         /* Footer */
@@ -561,17 +307,12 @@
             body { padding: 12px; }
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
             .chart-row { grid-template-columns: 1fr; }
-            .form-row { grid-template-columns: 1fr 1fr; }
-            .cat-columns { grid-template-columns: 1fr; }
             .budget-overall { flex-direction: column; align-items: stretch; }
         }
         @media (max-width: 480px) {
             .summary-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
             .summary-card { padding: 14px 12px; }
             .summary-card .value { font-size: 1.1rem; }
-            .form-row { grid-template-columns: 1fr; }
-            nav { gap: 6px; }
-            nav button { padding: 7px 14px; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -579,14 +320,9 @@
 
 <header>
     <h1>Sisyphe</h1>
+    <div class="subtitle">READ-ONLY Dashboard</div>
+    <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1V41yiwO4VrVUhjhqHyu8JGsuGcqw6pZen0NHdxzXHGs/edit" target="_blank">Google Sheet 열기</a>
 </header>
-
-<nav id="tabNav">
-    <button class="active" data-tab="dashboard">대시보드</button>
-    <button data-tab="entry">거래 입력</button>
-    <button data-tab="budget">예산</button>
-    <button data-tab="settings">설정</button>
-</nav>
 
 <div class="month-selector">
     <button id="prevMonth">&#9664;</button>
@@ -594,9 +330,10 @@
     <button id="nextMonth">&#9654;</button>
 </div>
 
-<main>
-    <!-- Dashboard -->
-    <section id="tab-dashboard" class="tab-section active">
+<main id="mainContent">
+    <div class="loading-state" id="loadingState">데이터를 불러오는 중...</div>
+
+    <div id="dashboardContent" style="display:none;">
         <div class="summary-grid">
             <div class="summary-card income">
                 <div class="label">수입</div>
@@ -615,6 +352,21 @@
                 <div class="value" id="sumBalance">-</div>
             </div>
         </div>
+
+        <div class="budget-summary" id="budgetSummarySection" style="display:none;">
+            <h3>이번 달 예산 현황</h3>
+            <div class="budget-overall">
+                <div>
+                    <span class="amount" id="budgetSpent">-</span>
+                    <span style="color:var(--text-muted);"> / </span>
+                    <span class="amount" id="budgetTotal">-</span>
+                </div>
+                <div class="progress-outer"><div class="progress-inner" id="budgetBar"></div></div>
+                <div class="pct" id="budgetPct">-</div>
+            </div>
+        </div>
+        <div class="budget-list" id="budgetList"></div>
+
         <div class="calendar-wrap">
             <h3>월간 달력</h3>
             <div class="cal-grid" id="calendarGrid"></div>
@@ -633,164 +385,17 @@
             <h3>최근 거래</h3>
             <div id="recentTxBody"></div>
         </div>
-    </section>
-
-    <!-- Entry -->
-    <section id="tab-entry" class="tab-section">
-        <div class="entry-form">
-            <h3>거래 추가 <span class="editing-indicator" id="editIndicator">수정 중...</span></h3>
-            <form id="txForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>날짜</label>
-                        <input type="date" id="txDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>유형</label>
-                        <select id="txType">
-                            <option value="expense">지출</option>
-                            <option value="income">수입</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>카테고리</label>
-                        <select id="txCategory" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label>금액 (원)</label>
-                        <input type="number" id="txAmount" min="0" step="1" required placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>메모</label>
-                        <input type="text" id="txMemo" placeholder="선택사항" list="memoSuggestions" autocomplete="off">
-                        <datalist id="memoSuggestions"></datalist>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" id="txSubmitBtn">추가</button>
-                    <button type="button" class="btn btn-ghost" id="txCancelBtn" style="display:none;">취소</button>
-                </div>
-            </form>
-            <div class="quick-cats" id="quickCats"></div>
-        </div>
-        <div class="table-wrap">
-            <h3>이번 달 거래 내역</h3>
-            <div id="txHistoryBody"></div>
-        </div>
-    </section>
-
-    <!-- Budget -->
-    <section id="tab-budget" class="tab-section">
-        <div class="budget-summary">
-            <h3>이번 달 예산 현황</h3>
-            <div class="budget-overall">
-                <div>
-                    <span class="amount" id="budgetSpent">-</span>
-                    <span style="color:var(--text-muted);"> / </span>
-                    <span class="amount" id="budgetTotal">-</span>
-                </div>
-                <div class="progress-outer"><div class="progress-inner" id="budgetBar"></div></div>
-                <div class="pct" id="budgetPct">-</div>
-            </div>
-        </div>
-        <div class="budget-list" id="budgetList"></div>
-    </section>
-
-    <!-- Settings -->
-    <section id="tab-settings" class="tab-section">
-        <div class="settings-section">
-            <h3>카테고리 관리</h3>
-            <div class="cat-columns">
-                <div class="cat-column">
-                    <h4>지출 카테고리</h4>
-                    <div class="cat-list" id="expenseCatList"></div>
-                    <div class="cat-add">
-                        <input type="text" id="newExpenseCat" placeholder="새 카테고리">
-                        <button class="btn btn-primary btn-sm" onclick="addCategoryUI('expense')">추가</button>
-                    </div>
-                </div>
-                <div class="cat-column">
-                    <h4>수입 카테고리</h4>
-                    <div class="cat-list" id="incomeCatList"></div>
-                    <div class="cat-add">
-                        <input type="text" id="newIncomeCat" placeholder="새 카테고리">
-                        <button class="btn btn-primary btn-sm" onclick="addCategoryUI('income')">추가</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="settings-section">
-            <h3>GitHub 동기화</h3>
-            <div id="syncConnected" style="display:none;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-                    <span style="color:var(--income);font-size:0.85rem;font-weight:600;">연결됨</span>
-                    <button class="btn btn-ghost btn-sm" onclick="manualSync()">수동 동기화</button>
-                    <button class="btn btn-ghost btn-sm" onclick="disconnectPat()" style="color:var(--expense);">연결 해제</button>
-                </div>
-                <div class="sync-status" id="syncStatus"></div>
-            </div>
-            <div id="syncSetup">
-                <div class="sync-steps">
-                    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">
-                        다른 기기에서도 데이터를 보려면 GitHub 토큰을 한 번만 연결하세요.
-                    </p>
-                    <div class="sync-step">
-                        <span class="sync-step-num">1</span>
-                        <div>
-                            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
-                               class="btn btn-primary btn-sm" style="display:inline-block;margin-bottom:6px;">GitHub 토큰 만들기</a>
-                            <div style="font-size:0.78rem;color:var(--text-muted);">
-                                Token name: <b>Sisyphe</b> &rarr; Expiration: <b>No expiration</b><br>
-                                Repository access: <b>Only select repositories</b> &rarr; <b>Sisyphe</b><br>
-                                Permissions &rarr; Contents: <b>Read and write</b> &rarr; <b>Generate token</b>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="sync-step">
-                        <span class="sync-step-num">2</span>
-                        <div>
-                            <span style="font-size:0.85rem;">생성된 토큰을 복사해서 아래에 붙여넣기</span>
-                        </div>
-                    </div>
-                    <div class="sync-step" style="margin-bottom:0;">
-                        <span class="sync-step-num">3</span>
-                        <div style="flex:1;">
-                            <div class="sync-row" style="margin-bottom:0;">
-                                <input type="password" id="ghPat" placeholder="github_pat_xxxxxxxxxxxx">
-                                <button class="btn btn-primary btn-sm" onclick="savePatAndTest()">연결</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sync-status" id="syncStatusSetup"></div>
-            </div>
-        </div>
-        <div class="settings-section">
-            <h3>데이터 관리</h3>
-            <div class="data-actions">
-                <button class="btn btn-primary" onclick="exportExcel()">엑셀 내보내기</button>
-                <button class="btn btn-ghost" onclick="exportData()">JSON 내보내기</button>
-                <div class="file-input-wrap">
-                    <button class="btn btn-ghost">JSON 가져오기</button>
-                    <input type="file" accept=".json" onchange="importData(event)">
-                </div>
-                <button class="btn btn-danger" onclick="resetData()">전체 초기화</button>
-            </div>
-        </div>
-    </section>
+    </div>
 </main>
 
-<div class="sync-badge" id="syncBadge"></div>
 <footer>Sisyphe &copy; 2026</footer>
 
 <script>
 // ============================================================
 // CONSTANTS
 // ============================================================
-const STORAGE_KEY = 'sisyphe_data';
-const PAT_KEY = 'sisyphe_gh_pat';
-const GH_REPO = 'sisyphe10/Sisyphe';
-const GH_DATA_PATH = 'data.json';
+const SHEET_ID = '1V41yiwO4VrVUhjhqHyu8JGsuGcqw6pZen0NHdxzXHGs';
+const GOOGLE_API_KEY = 'AIzaSyCHPiRby5FVAIKDwneZHy1KGl3SfycjZEw';
 const DEFAULT_CATEGORIES = {
     expense: ['식비', '카페/간식', '교통', '주거', '통신', '쇼핑', '의료', '교육', '여가/문화', '경조사', '저축/투자', '기타'],
     income: ['급여', '투자수익', '부수입', '기타']
@@ -806,119 +411,75 @@ const CATEGORY_COLORS = [
 // STATE
 // ============================================================
 let state = {
-    currentTab: 'dashboard',
     currentYear: new Date().getFullYear(),
-    currentMonth: new Date().getMonth() + 1,
-    editingId: null
+    currentMonth: new Date().getMonth() + 1
 };
 let charts = { trend: null, category: null };
-let syncTimer = null;
-let ghFileSha = null;
+let appData = {
+    transactions: [],
+    categories: { ...DEFAULT_CATEGORIES },
+    budgets: {}
+};
 
 // ============================================================
-// DATA LAYER
+// DATA LAYER - Google Sheets API
 // ============================================================
-function loadData() {
+function sheetUrl(name) {
+    return `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(name)}?key=${GOOGLE_API_KEY}`;
+}
+
+async function loadAllData() {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return null;
-}
+        const [txRes, catRes, budgetRes] = await Promise.all([
+            fetch(sheetUrl('거래내역')).then(r => r.json()),
+            fetch(sheetUrl('카테고리')).then(r => r.json()),
+            fetch(sheetUrl('예산')).then(r => r.json())
+        ]);
 
-function saveData(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    scheduleSyncToGitHub();
-}
+        // Parse transactions (skip header row)
+        const txRows = (txRes.values || []).slice(1);
+        appData.transactions = txRows.map(r => ({
+            date: r[0] || '',
+            type: r[1] === '수입' ? 'income' : 'expense',
+            category: r[2] || '',
+            amount: parseInt((r[3] || '0').replace(/,/g, '')) || 0,
+            memo: r[4] || ''
+        }));
 
-function getData() {
-    let data = loadData();
-    if (!data) {
-        data = {
-            transactions: [],
-            budgets: {},
-            categories: { ...DEFAULT_CATEGORIES }
-        };
-        saveData(data);
+        // Parse categories
+        const catRows = (catRes.values || []).slice(1);
+        appData.categories = { expense: [], income: [] };
+        catRows.forEach(r => {
+            const type = r[0] === '수입' ? 'income' : 'expense';
+            if (r[1]) appData.categories[type].push(r[1]);
+        });
+
+        // Parse budgets
+        const budgetRows = (budgetRes.values || []).slice(1);
+        appData.budgets = {};
+        budgetRows.forEach(r => {
+            if (r[0] && r[1]) appData.budgets[r[0]] = parseInt((r[1] || '0').replace(/,/g, '')) || 0;
+        });
+    } catch (e) {
+        console.error('Sheet load error:', e);
     }
-    if (!data.categories) data.categories = { ...DEFAULT_CATEGORIES };
-    if (!data.budgets) data.budgets = {};
-    if (!data.transactions) data.transactions = [];
-    return data;
-}
-
-function generateId() {
-    if (crypto && crypto.randomUUID) return crypto.randomUUID();
-    return Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
-
-// Transaction CRUD
-function addTransaction(tx) {
-    const data = getData();
-    tx.id = generateId();
-    data.transactions.push(tx);
-    saveData(data);
-}
-
-function updateTransaction(id, updates) {
-    const data = getData();
-    const idx = data.transactions.findIndex(t => t.id === id);
-    if (idx >= 0) {
-        data.transactions[idx] = { ...data.transactions[idx], ...updates };
-        saveData(data);
-    }
-}
-
-function deleteTransaction(id) {
-    const data = getData();
-    data.transactions = data.transactions.filter(t => t.id !== id);
-    saveData(data);
 }
 
 function getTransactions(year, month) {
     const prefix = `${year}-${String(month).padStart(2, '0')}`;
-    return getData().transactions.filter(t => t.date.startsWith(prefix));
+    return appData.transactions.filter(t => t.date.startsWith(prefix));
 }
 
 function getAllTransactions() {
-    return getData().transactions;
+    return appData.transactions;
 }
 
-// Budget CRUD
-function setBudget(category, amount) {
-    const data = getData();
-    if (amount > 0) {
-        data.budgets[category] = amount;
-    } else {
-        delete data.budgets[category];
-    }
-    saveData(data);
+function getCategories() {
+    return appData.categories;
 }
 
 function getBudgets() {
-    return getData().budgets;
-}
-
-// Category CRUD
-function getCategories() {
-    return getData().categories;
-}
-
-function addCategory(type, name) {
-    const data = getData();
-    if (!data.categories[type].includes(name)) {
-        data.categories[type].push(name);
-        saveData(data);
-    }
-}
-
-function removeCategory(type, name) {
-    const data = getData();
-    const used = data.transactions.some(t => t.category === name && t.type === type);
-    if (used) return false;
-    data.categories[type] = data.categories[type].filter(c => c !== name);
-    saveData(data);
-    return true;
+    return appData.budgets;
 }
 
 // ============================================================
@@ -975,29 +536,6 @@ function getProgressClass(pct) {
 }
 
 // ============================================================
-// TAB NAVIGATION
-// ============================================================
-function switchTab(tabName) {
-    state.currentTab = tabName;
-    document.querySelectorAll('#tabNav button').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tabName);
-    });
-    document.querySelectorAll('.tab-section').forEach(sec => {
-        sec.classList.toggle('active', sec.id === `tab-${tabName}`);
-    });
-    renderCurrentTab();
-}
-
-function renderCurrentTab() {
-    switch (state.currentTab) {
-        case 'dashboard': renderDashboard(); break;
-        case 'entry': renderEntryTab(); break;
-        case 'budget': renderBudgetTab(); break;
-        case 'settings': renderSettingsTab(); break;
-    }
-}
-
-// ============================================================
 // MONTH SELECTOR
 // ============================================================
 function renderMonthSelector() {
@@ -1009,6 +547,8 @@ function renderMonthSelector() {
 // ============================================================
 function renderDashboard() {
     renderSummaryCards();
+    renderBudgetSummary();
+    renderBudgetList();
     renderCalendar();
     renderTrendChart();
     renderCategoryChart();
@@ -1043,6 +583,65 @@ function renderSummaryCards() {
 
     elBalance.textContent = formatWon(totalBalance);
     elBalance.className = 'value' + (totalBalance >= 0 ? ' positive' : ' negative');
+}
+
+function renderBudgetSummary() {
+    const budgets = getBudgets();
+    const totalBudget = Object.values(budgets).reduce((s, v) => s + v, 0);
+    const expenses = getTransactions(state.currentYear, state.currentMonth).filter(t => t.type === 'expense');
+    const totalSpent = sum(expenses, 'amount');
+    const pct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+
+    const section = document.getElementById('budgetSummarySection');
+    if (totalBudget <= 0) {
+        section.style.display = 'none';
+        return;
+    }
+    section.style.display = '';
+
+    document.getElementById('budgetSpent').textContent = formatWon(totalSpent);
+    document.getElementById('budgetTotal').textContent = formatWon(totalBudget);
+    document.getElementById('budgetPct').textContent = pct + '%';
+    document.getElementById('budgetPct').style.color = pct > 100 ? 'var(--expense)' : pct >= 80 ? 'var(--income)' : 'var(--navy)';
+
+    const bar = document.getElementById('budgetBar');
+    bar.style.width = Math.min(pct, 100) + '%';
+    bar.className = 'progress-inner ' + getProgressClass(pct);
+}
+
+function renderBudgetList() {
+    const budgets = getBudgets();
+    const budgetEntries = Object.keys(budgets);
+    if (budgetEntries.length === 0) {
+        document.getElementById('budgetList').innerHTML = '';
+        return;
+    }
+
+    const expenses = getTransactions(state.currentYear, state.currentMonth).filter(t => t.type === 'expense');
+    const spentByCategory = {};
+    expenses.forEach(tx => {
+        spentByCategory[tx.category] = (spentByCategory[tx.category] || 0) + tx.amount;
+    });
+
+    const container = document.getElementById('budgetList');
+    container.innerHTML = budgetEntries.map(cat => {
+        const budget = budgets[cat] || 0;
+        const spent = spentByCategory[cat] || 0;
+        const pct = budget > 0 ? Math.round((spent / budget) * 100) : 0;
+        const pctClass = getProgressClass(pct);
+
+        return `<div class="budget-item">
+            <div class="budget-item-header">
+                <span class="cat-name">${cat}</span>
+                <span style="color:var(--text-muted);font-size:0.8rem;">월 예산: ${formatWon(budget)}</span>
+            </div>
+            <div class="progress-outer"><div class="progress-inner ${pctClass}" style="width:${Math.min(pct, 100)}%"></div></div>
+            <div class="budget-item-stats">
+                <span>${formatWon(spent)} 사용 / ${formatWon(budget)}</span>
+                <span>${pct}%</span>
+            </div>
+        </div>`;
+    }).join('');
 }
 
 function renderCalendar() {
@@ -1224,676 +823,37 @@ function renderRecentTransactions() {
 }
 
 // ============================================================
-// ENTRY TAB
-// ============================================================
-function renderEntryTab() {
-    renderCategoryDropdown();
-    renderQuickCategories();
-    renderMemoSuggestions();
-    renderTransactionHistory();
-}
-
-function renderMemoSuggestions() {
-    const memos = [...new Set(getAllTransactions().map(t => t.memo).filter(Boolean))].sort();
-    document.getElementById('memoSuggestions').innerHTML = memos.map(m => `<option value="${m}">`).join('');
-}
-
-function renderCategoryDropdown() {
-    const type = document.getElementById('txType').value;
-    const cats = getCategories()[type] || [];
-    const sel = document.getElementById('txCategory');
-    const currentVal = sel.value;
-    sel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    if (cats.includes(currentVal)) sel.value = currentVal;
-}
-
-function renderQuickCategories() {
-    const type = document.getElementById('txType').value;
-    const cats = getCategories()[type] || [];
-    document.getElementById('quickCats').innerHTML = cats.map(c =>
-        `<button type="button" class="quick-cat" onclick="pickCategory('${c}')">${c}</button>`
-    ).join('');
-}
-
-function pickCategory(name) {
-    document.getElementById('txCategory').value = name;
-}
-
-function onTypeChange() {
-    renderCategoryDropdown();
-    renderQuickCategories();
-}
-
-function onSubmitTransaction(e) {
-    e.preventDefault();
-    const date = document.getElementById('txDate').value;
-    const type = document.getElementById('txType').value;
-    const category = document.getElementById('txCategory').value;
-    const amount = Number(document.getElementById('txAmount').value);
-    const memo = document.getElementById('txMemo').value.trim();
-
-    if (!date || !category || amount <= 0) return;
-
-    if (state.editingId) {
-        updateTransaction(state.editingId, { date, type, category, amount, memo });
-        cancelEdit();
-    } else {
-        addTransaction({ date, type, category, amount, memo });
-    }
-
-    document.getElementById('txForm').reset();
-    document.getElementById('txDate').value = getTodayStr();
-    document.getElementById('txType').value = 'expense';
-    renderCategoryDropdown();
-    renderQuickCategories();
-    renderTransactionHistory();
-}
-
-function startEdit(id) {
-    const data = getData();
-    const tx = data.transactions.find(t => t.id === id);
-    if (!tx) return;
-
-    state.editingId = id;
-    document.getElementById('txDate').value = tx.date;
-    document.getElementById('txType').value = tx.type;
-    renderCategoryDropdown();
-    document.getElementById('txCategory').value = tx.category;
-    document.getElementById('txAmount').value = tx.amount;
-    document.getElementById('txMemo').value = tx.memo || '';
-    document.getElementById('txSubmitBtn').textContent = '수정';
-    document.getElementById('txCancelBtn').style.display = '';
-    document.getElementById('editIndicator').classList.add('show');
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function cancelEdit() {
-    state.editingId = null;
-    document.getElementById('txSubmitBtn').textContent = '추가';
-    document.getElementById('txCancelBtn').style.display = 'none';
-    document.getElementById('editIndicator').classList.remove('show');
-}
-
-function confirmDelete(id) {
-    if (confirm('이 거래를 삭제하시겠습니까?')) {
-        deleteTransaction(id);
-        renderTransactionHistory();
-    }
-}
-
-function renderTransactionHistory() {
-    const txs = getTransactions(state.currentYear, state.currentMonth)
-        .sort((a, b) => b.date.localeCompare(a.date));
-
-    const container = document.getElementById('txHistoryBody');
-    if (txs.length === 0) {
-        container.innerHTML = '<div class="empty-state">이번 달 거래 내역이 없습니다</div>';
-        return;
-    }
-
-    let html = '<table><thead><tr><th>날짜</th><th>유형</th><th>카테고리</th><th>금액</th><th>메모</th><th style="width:80px"></th></tr></thead><tbody>';
-    txs.forEach(tx => {
-        const cls = tx.type === 'income' ? 'amount-income' : 'amount-expense';
-        const sign = tx.type === 'income' ? '+' : '-';
-        html += `<tr>
-            <td>${formatDate(tx.date)}</td>
-            <td><span class="badge ${tx.type}">${tx.type === 'income' ? '수입' : '지출'}</span></td>
-            <td>${tx.category}</td>
-            <td class="${cls}">${sign}${formatWon(tx.amount)}</td>
-            <td style="color:var(--text-muted)">${tx.memo || ''}</td>
-            <td>
-                <button class="btn btn-ghost btn-sm" onclick="startEdit('${tx.id}')">&#9998;</button>
-                <button class="btn btn-ghost btn-sm" onclick="confirmDelete('${tx.id}')" style="color:var(--expense)">&#10005;</button>
-            </td>
-        </tr>`;
-    });
-    html += '</tbody></table>';
-    container.innerHTML = html;
-}
-
-// ============================================================
-// BUDGET TAB
-// ============================================================
-function renderBudgetTab() {
-    renderBudgetSummary();
-    renderBudgetList();
-}
-
-function renderBudgetSummary() {
-    const budgets = getBudgets();
-    const totalBudget = Object.values(budgets).reduce((s, v) => s + v, 0);
-    const expenses = getTransactions(state.currentYear, state.currentMonth).filter(t => t.type === 'expense');
-    const totalSpent = sum(expenses, 'amount');
-    const pct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
-
-    document.getElementById('budgetSpent').textContent = formatWon(totalSpent);
-    document.getElementById('budgetTotal').textContent = totalBudget > 0 ? formatWon(totalBudget) : '미설정';
-    document.getElementById('budgetPct').textContent = totalBudget > 0 ? pct + '%' : '-';
-    document.getElementById('budgetPct').style.color = pct > 100 ? 'var(--expense)' : pct >= 80 ? 'var(--income)' : 'var(--navy)';
-
-    const bar = document.getElementById('budgetBar');
-    bar.style.width = Math.min(pct, 100) + '%';
-    bar.className = 'progress-inner ' + getProgressClass(pct);
-}
-
-function renderBudgetList() {
-    const cats = getCategories().expense;
-    const budgets = getBudgets();
-    const expenses = getTransactions(state.currentYear, state.currentMonth).filter(t => t.type === 'expense');
-    const spentByCategory = {};
-    expenses.forEach(tx => {
-        spentByCategory[tx.category] = (spentByCategory[tx.category] || 0) + tx.amount;
-    });
-
-    const container = document.getElementById('budgetList');
-    container.innerHTML = cats.map(cat => {
-        const budget = budgets[cat] || 0;
-        const spent = spentByCategory[cat] || 0;
-        const pct = budget > 0 ? Math.round((spent / budget) * 100) : 0;
-        const pctClass = getProgressClass(pct);
-
-        return `<div class="budget-item">
-            <div class="budget-item-header">
-                <span class="cat-name">${cat}</span>
-                <div class="budget-input-wrap">
-                    <span style="color:var(--text-muted);font-size:0.8rem;">월 예산:</span>
-                    <input type="number" value="${budget || ''}" placeholder="미설정"
-                        onchange="onBudgetChange('${cat}', this.value)" min="0" step="10000">
-                </div>
-            </div>
-            <div class="progress-outer"><div class="progress-inner ${pctClass}" style="width:${Math.min(pct, 100)}%"></div></div>
-            <div class="budget-item-stats">
-                <span>${formatWon(spent)} 사용${budget > 0 ? ' / ' + formatWon(budget) : ''}</span>
-                <span>${budget > 0 ? pct + '%' : '-'}</span>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-function onBudgetChange(category, value) {
-    setBudget(category, Number(value) || 0);
-    renderBudgetSummary();
-}
-
-// ============================================================
-// SETTINGS TAB
-// ============================================================
-function renderSettingsTab() {
-    renderCategoryManager();
-}
-
-function renderCategoryManager() {
-    ['expense', 'income'].forEach(type => {
-        const containerId = type === 'expense' ? 'expenseCatList' : 'incomeCatList';
-        const cats = getCategories()[type] || [];
-        const container = document.getElementById(containerId);
-        container.innerHTML = cats.map((c, i) =>
-            `<div class="cat-item" draggable="true" data-type="${type}" data-index="${i}" data-name="${c}">
-                <span><span class="cat-handle">&#9776;</span><span class="cat-label">${c}</span></span>
-                <span class="cat-actions">
-                    <button class="btn btn-ghost btn-sm" onclick="startEditCategory('${type}', ${i}, '${c.replace(/'/g, "\\'")}')" title="수정">&#9998;</button>
-                    <button class="btn btn-ghost btn-sm" onclick="removeCategoryUI('${type}', '${c.replace(/'/g, "\\'")}')" style="color:var(--expense)">&#10005;</button>
-                </span>
-            </div>`
-        ).join('');
-        initDragAndDrop(container, type);
-    });
-}
-
-function initDragAndDrop(container, type) {
-    let dragIdx = null;
-
-    container.querySelectorAll('.cat-item').forEach(el => {
-        el.addEventListener('dragstart', e => {
-            dragIdx = parseInt(el.dataset.index);
-            el.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        });
-        el.addEventListener('dragend', () => {
-            el.classList.remove('dragging');
-            container.querySelectorAll('.cat-item').forEach(c => c.classList.remove('drag-over'));
-            dragIdx = null;
-        });
-        el.addEventListener('dragover', e => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            el.classList.add('drag-over');
-        });
-        el.addEventListener('dragleave', () => {
-            el.classList.remove('drag-over');
-        });
-        el.addEventListener('drop', e => {
-            e.preventDefault();
-            el.classList.remove('drag-over');
-            const dropIdx = parseInt(el.dataset.index);
-            if (dragIdx !== null && dragIdx !== dropIdx) {
-                reorderCategory(type, dragIdx, dropIdx);
-            }
-        });
-    });
-}
-
-function reorderCategory(type, fromIdx, toIdx) {
-    const data = getData();
-    const arr = data.categories[type];
-    const [item] = arr.splice(fromIdx, 1);
-    arr.splice(toIdx, 0, item);
-    saveData(data);
-    renderCategoryManager();
-}
-
-function startEditCategory(type, index, oldName) {
-    const containerId = type === 'expense' ? 'expenseCatList' : 'incomeCatList';
-    const container = document.getElementById(containerId);
-    const item = container.children[index];
-    if (!item) return;
-
-    item.draggable = false;
-    item.innerHTML = `
-        <input type="text" class="cat-edit-input" value="${oldName}"
-            onkeydown="if(event.key==='Enter')saveEditCategory('${type}',${index},'${oldName.replace(/'/g, "\\'")}',this.value);if(event.key==='Escape')renderCategoryManager();">
-        <span class="cat-actions">
-            <button class="btn btn-ghost btn-sm" onclick="saveEditCategory('${type}',${index},'${oldName.replace(/'/g, "\\'")}',this.parentElement.previousElementSibling.value)" title="저장" style="color:var(--income);">&#10003;</button>
-            <button class="btn btn-ghost btn-sm" onclick="renderCategoryManager()" title="취소" style="color:var(--expense);">&#10005;</button>
-        </span>`;
-    item.querySelector('input').focus();
-    item.querySelector('input').select();
-}
-
-function saveEditCategory(type, index, oldName, newName) {
-    newName = newName.trim();
-    if (!newName || newName === oldName) { renderCategoryManager(); return; }
-
-    const data = getData();
-    const cats = data.categories[type];
-    if (cats.includes(newName)) { alert('이미 존재하는 카테고리입니다.'); return; }
-
-    // Rename in categories
-    cats[index] = newName;
-
-    // Rename in all transactions
-    data.transactions.forEach(tx => {
-        if (tx.type === type && tx.category === oldName) tx.category = newName;
-    });
-
-    // Rename in budgets (expense only)
-    if (type === 'expense' && data.budgets[oldName] !== undefined) {
-        data.budgets[newName] = data.budgets[oldName];
-        delete data.budgets[oldName];
-    }
-
-    saveData(data);
-    renderCategoryManager();
-}
-
-function addCategoryUI(type) {
-    const inputId = type === 'expense' ? 'newExpenseCat' : 'newIncomeCat';
-    const input = document.getElementById(inputId);
-    const name = input.value.trim();
-    if (!name) return;
-    addCategory(type, name);
-    input.value = '';
-    renderCategoryManager();
-}
-
-function removeCategoryUI(type, name) {
-    const ok = removeCategory(type, name);
-    if (!ok) {
-        alert(`'${name}' 카테고리를 사용하는 거래가 있어 삭제할 수 없습니다.`);
-        return;
-    }
-    renderCategoryManager();
-}
-
-// ============================================================
-// DATA EXPORT / IMPORT / RESET
-// ============================================================
-function exportExcel() {
-    const data = getData();
-    const wb = XLSX.utils.book_new();
-
-    // Sheet 1: 거래 내역
-    const txRows = data.transactions
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .map(tx => ({
-            '날짜': tx.date,
-            '유형': tx.type === 'income' ? '수입' : '지출',
-            '카테고리': tx.category,
-            '금액': tx.amount,
-            '메모': tx.memo || ''
-        }));
-    const ws1 = XLSX.utils.json_to_sheet(txRows.length ? txRows : [{ '날짜': '', '유형': '', '카테고리': '', '금액': '', '메모': '' }]);
-    ws1['!cols'] = [{ wch: 12 }, { wch: 6 }, { wch: 12 }, { wch: 14 }, { wch: 20 }];
-    XLSX.utils.book_append_sheet(wb, ws1, '거래내역');
-
-    // Sheet 2: 월별 요약
-    const monthMap = {};
-    data.transactions.forEach(tx => {
-        const ym = tx.date.slice(0, 7);
-        if (!monthMap[ym]) monthMap[ym] = { income: 0, expense: 0 };
-        if (tx.type === 'income') monthMap[ym].income += tx.amount;
-        else monthMap[ym].expense += tx.amount;
-    });
-    const summaryRows = Object.keys(monthMap).sort().map(ym => ({
-        '월': ym,
-        '수입': monthMap[ym].income,
-        '지출': monthMap[ym].expense,
-        '순수입': monthMap[ym].income - monthMap[ym].expense
-    }));
-    const ws2 = XLSX.utils.json_to_sheet(summaryRows.length ? summaryRows : [{ '월': '', '수입': '', '지출': '', '순수입': '' }]);
-    ws2['!cols'] = [{ wch: 10 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
-    XLSX.utils.book_append_sheet(wb, ws2, '월별요약');
-
-    // Sheet 3: 예산
-    const budgetRows = Object.entries(data.budgets).map(([cat, amt]) => ({
-        '카테고리': cat,
-        '월 예산': amt
-    }));
-    if (budgetRows.length) {
-        const ws3 = XLSX.utils.json_to_sheet(budgetRows);
-        ws3['!cols'] = [{ wch: 12 }, { wch: 14 }];
-        XLSX.utils.book_append_sheet(wb, ws3, '예산');
-    }
-
-    XLSX.writeFile(wb, `sisyphe_${getTodayStr()}.xlsx`);
-}
-
-function exportData() {
-    const data = getData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `sisyphe_backup_${getTodayStr()}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-}
-
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            if (!data.transactions || !data.categories) {
-                alert('올바른 Sisyphe 백업 파일이 아닙니다.');
-                return;
-            }
-            if (!confirm('현재 데이터를 덮어씁니다. 계속하시겠습니까?')) return;
-            saveData(data);
-            renderCurrentTab();
-            alert('가져오기 완료!');
-        } catch (err) {
-            alert('파일 파싱 오류: ' + err.message);
-        }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-}
-
-function resetData() {
-    if (!confirm('정말 모든 데이터를 삭제하시겠습니까?')) return;
-    if (!confirm('이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-}
-
-// ============================================================
-// GITHUB SYNC
-// ============================================================
-function getGhPat() {
-    return localStorage.getItem(PAT_KEY) || '';
-}
-
-function showSyncBadge(msg, cls) {
-    const el = document.getElementById('syncBadge');
-    el.textContent = msg;
-    el.className = 'sync-badge show ' + (cls || '');
-    clearTimeout(el._timer);
-    el._timer = setTimeout(() => { el.classList.remove('show'); }, 2500);
-}
-
-function setSyncStatus(msg, cls) {
-    ['syncStatus', 'syncStatusSetup'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.textContent = msg; el.className = 'sync-status ' + (cls || ''); }
-    });
-}
-
-function updateSyncUI() {
-    const connected = !!getGhPat();
-    document.getElementById('syncConnected').style.display = connected ? '' : 'none';
-    document.getElementById('syncSetup').style.display = connected ? 'none' : '';
-}
-
-async function ghApiFetch(path, options = {}) {
-    const pat = getGhPat();
-    if (!pat) return null;
-    const res = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
-        headers: {
-            'Authorization': `token ${pat}`,
-            'Accept': 'application/vnd.github.v3+json',
-            ...options.headers
-        },
-        ...options
-    });
-    return res;
-}
-
-async function pullFromGitHub(force = false) {
-    const pat = getGhPat();
-    if (!pat) return;
-
-    try {
-        const res = await ghApiFetch(GH_DATA_PATH);
-        if (res.status === 200) {
-            const json = await res.json();
-            ghFileSha = json.sha;
-            const content = atob(json.content.replace(/\n/g, ''));
-            const remoteData = JSON.parse(new TextDecoder().decode(
-                Uint8Array.from(content, c => c.charCodeAt(0))
-            ));
-            if (remoteData && remoteData.transactions) {
-                const localData = loadData();
-                const localCount = localData ? (localData.transactions || []).length : 0;
-                const remoteCount = remoteData.transactions.length;
-
-                // Merge: combine transactions by ID (union)
-                if (localData && localCount > 0 && remoteCount > 0) {
-                    const localIds = new Set(localData.transactions.map(t => t.id));
-                    const remoteIds = new Set(remoteData.transactions.map(t => t.id));
-                    const merged = [...localData.transactions];
-                    remoteData.transactions.forEach(t => {
-                        if (!localIds.has(t.id)) merged.push(t);
-                    });
-                    remoteData.transactions = merged;
-                    // Keep richer categories (more items wins)
-                    if (localData.categories) {
-                        ['expense', 'income'].forEach(type => {
-                            const lc = (localData.categories[type] || []);
-                            const rc = (remoteData.categories[type] || []);
-                            if (lc.length > rc.length) remoteData.categories[type] = lc;
-                        });
-                    }
-                    // Merge budgets
-                    if (localData.budgets) {
-                        remoteData.budgets = { ...localData.budgets, ...remoteData.budgets };
-                    }
-                }
-
-                saveDataLocal(remoteData);
-                showSyncBadge('동기화 완료', 'ok');
-                return true;
-            }
-        } else if (res.status === 404) {
-            ghFileSha = null;
-        }
-    } catch (e) {
-        console.error('Pull from GitHub failed:', e);
-    }
-    return false;
-}
-
-function saveDataLocal(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-async function pushToGitHub() {
-    const pat = getGhPat();
-    if (!pat) return;
-
-    const data = getData();
-    const jsonStr = JSON.stringify(data, null, 2);
-    const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-
-    try {
-        const body = {
-            message: `sync: ${new Date().toISOString().slice(0, 16)}`,
-            content: encoded
-        };
-        if (ghFileSha) body.sha = ghFileSha;
-
-        const res = await ghApiFetch(GH_DATA_PATH, {
-            method: 'PUT',
-            body: JSON.stringify(body)
-        });
-
-        if (res.status === 200 || res.status === 201) {
-            const result = await res.json();
-            ghFileSha = result.content.sha;
-            showSyncBadge('동기화 완료', 'ok');
-        } else if (res.status === 409) {
-            // SHA conflict - re-fetch and retry
-            await pullFromGitHub();
-            return pushToGitHub();
-        } else {
-            const err = await res.text();
-            console.error('Push failed:', res.status, err);
-            showSyncBadge('동기화 실패', 'err');
-        }
-    } catch (e) {
-        console.error('Push to GitHub failed:', e);
-        showSyncBadge('동기화 실패', 'err');
-    }
-}
-
-function scheduleSyncToGitHub() {
-    if (!getGhPat()) return;
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(() => pushToGitHub(), 2000);
-}
-
-async function savePatAndTest() {
-    const pat = document.getElementById('ghPat').value.trim();
-    if (!pat) return;
-
-    setSyncStatus('연결 테스트 중...', 'syncing');
-    localStorage.setItem(PAT_KEY, pat);
-
-    try {
-        const res = await fetch(`https://api.github.com/repos/${GH_REPO}`, {
-            headers: { 'Authorization': `token ${pat}` }
-        });
-        if (res.ok) {
-            setSyncStatus('연결 성공! 데이터를 동기화합니다...', 'ok');
-            const pulled = await pullFromGitHub();
-            if (pulled) {
-                renderCurrentTab();
-                setSyncStatus('GitHub에서 데이터를 불러왔습니다.', 'ok');
-            } else {
-                await pushToGitHub();
-                setSyncStatus('자동 동기화 활성화됨.', 'ok');
-            }
-            updateSyncUI();
-        } else {
-            setSyncStatus('인증 실패. 토큰을 확인하세요.', 'err');
-            localStorage.removeItem(PAT_KEY);
-        }
-    } catch (e) {
-        setSyncStatus('네트워크 오류: ' + e.message, 'err');
-        localStorage.removeItem(PAT_KEY);
-    }
-}
-
-function disconnectPat() {
-    if (!confirm('동기화 연결을 해제하시겠습니까? (로컬 데이터는 유지됩니다)')) return;
-    localStorage.removeItem(PAT_KEY);
-    ghFileSha = null;
-    document.getElementById('ghPat').value = '';
-    setSyncStatus('', '');
-    updateSyncUI();
-}
-
-async function manualSync() {
-    if (!getGhPat()) {
-        setSyncStatus('PAT를 먼저 입력하세요.', 'err');
-        return;
-    }
-    setSyncStatus('동기화 중...', 'syncing');
-    const pulled = await pullFromGitHub();
-    if (pulled) {
-        renderCurrentTab();
-        setSyncStatus('GitHub에서 최신 데이터를 불러왔습니다.', 'ok');
-    } else {
-        await pushToGitHub();
-        setSyncStatus('GitHub에 데이터를 업로드했습니다.', 'ok');
-    }
-}
-
-// ============================================================
 // INITIALIZATION
 // ============================================================
 async function init() {
-    getData(); // seed defaults if needed
-
-    // Load PAT and try to pull from GitHub
-    const pat = getGhPat();
-    if (pat) {
-        document.getElementById('ghPat').value = pat;
-        const pulled = await pullFromGitHub();
-        if (pulled) setSyncStatus('GitHub 데이터 로드 완료', 'ok');
-    }
-    updateSyncUI();
-
-    // Set date default
-    document.getElementById('txDate').value = getTodayStr();
-
-    // Tab navigation
-    document.querySelectorAll('#tabNav button').forEach(btn => {
-        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
-
     // Month selector
     document.getElementById('prevMonth').addEventListener('click', () => {
         prevMonth();
         renderMonthSelector();
-        renderCurrentTab();
+        renderDashboard();
     });
     document.getElementById('nextMonth').addEventListener('click', () => {
         nextMonth();
         renderMonthSelector();
-        renderCurrentTab();
+        renderDashboard();
     });
-
-    // Entry form
-    document.getElementById('txType').addEventListener('change', onTypeChange);
-    document.getElementById('txForm').addEventListener('submit', onSubmitTransaction);
-    document.getElementById('txCancelBtn').addEventListener('click', () => {
-        cancelEdit();
-        document.getElementById('txForm').reset();
-        document.getElementById('txDate').value = getTodayStr();
-        document.getElementById('txType').value = 'expense';
-        renderCategoryDropdown();
-        renderQuickCategories();
-    });
-
-    // Settings enter key
-    document.getElementById('newExpenseCat').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCategoryUI('expense'); } });
-    document.getElementById('newIncomeCat').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addCategoryUI('income'); } });
 
     renderMonthSelector();
-    switchTab('dashboard');
+
+    // Fetch data from Google Sheets
+    await loadAllData();
+
+    // Hide loading, show dashboard
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('dashboardContent').style.display = '';
+
+    renderDashboard();
+
+    // Auto-refresh every 5 minutes
+    setInterval(async () => {
+        await loadAllData();
+        renderDashboard();
+    }, 5 * 60 * 1000);
 }
 
 document.addEventListener('DOMContentLoaded', init);
