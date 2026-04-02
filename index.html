@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sisyphe Ledger</title>
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap' rel='stylesheet'>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>document.addEventListener('DOMContentLoaded',function(){if(window.Chart)Chart.defaults.font.family="'Inter','Noto Sans KR',sans-serif";});</script>
     <style>
         :root {
             --bg-color: #111111;
@@ -26,7 +28,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', 'Malgun Gothic', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             padding: 20px;
@@ -47,16 +49,18 @@
             position: absolute;
             top: 20px;
             right: 0;
-            color: var(--accent-light);
+            color: #fff;
             font-size: 0.8rem;
+            font-weight: 600;
             text-decoration: none;
-            border: 1px solid var(--navy);
-            padding: 4px 14px;
-            border-radius: 16px;
+            background: #0F9D58;
+            padding: 5px 14px;
+            border-radius: 6px;
+            border: none;
             transition: all 0.2s;
         }
         header .sheet-link:hover {
-            background: var(--navy);
+            background: #0B8043;
             color: #fff;
         }
 
@@ -321,7 +325,7 @@
 
 <header>
     <h1>Sisyphe Ledger</h1>
-    <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1V41yiwO4VrVUhjhqHyu8JGsuGcqw6pZen0NHdxzXHGs/edit" target="_blank">Google Sheet 열기</a>
+    <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1V41yiwO4VrVUhjhqHyu8JGsuGcqw6pZen0NHdxzXHGs/edit" target="_blank">Sheet</a>
 </header>
 
 <div class="month-selector">
