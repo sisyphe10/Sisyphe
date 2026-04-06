@@ -635,33 +635,10 @@ function renderBudgetList() {
         return;
     }
 
-    const expenses = getTransactions(state.currentYear, state.currentMonth).filter(t => t.type === 'expense');
-    const spentByCategory = {};
-    expenses.forEach(tx => { spentByCategory[tx.category] = (spentByCategory[tx.category] || 0) + tx.amount; });
-
     let html = '';
     groupNames.forEach(groupName => {
-        const group = budgetGroups[groupName];
-        html += Object.keys(group.categories).map(cat => {
-            const budget = group.categories[cat] || 0;
-            const spent = spentByCategory[cat] || 0;
-            const pct = budget > 0 ? Math.round((spent / budget) * 100) : 0;
-            const pctClass = budget > 0 ? getProgressClass(pct) : 'progress-green';
-            const budgetLabel = budget > 0 ? formatWon(budget) : '-';
-            const pctLabel = budget > 0 ? pct + '%' : (spent > 0 ? formatWon(spent) + ' 사용' : '-');
-
-            return `<div class="budget-item">
-                <div class="budget-item-header">
-                    <span class="cat-name">${cat}</span>
-                    <span style="color:var(--text-muted);font-size:0.8rem;">월 예산: ${budgetLabel}</span>
-                </div>
-                <div class="progress-outer"><div class="progress-inner ${pctClass}" style="width:${budget > 0 ? Math.min(pct, 100) : 0}%"></div></div>
-                <div class="budget-item-stats">
-                    <span>${formatWon(spent)} / ${budgetLabel}</span>
-                    <span>${pctLabel}</span>
-                </div>
-            </div>`;
-        }).join('');
+        const cats = Object.keys(budgetGroups[groupName].categories);
+        html += `<div style="color:var(--text-muted);font-size:0.8rem;margin-top:4px;">${groupName} = ${cats.join(', ')}</div>`;
     });
 
     document.getElementById('budgetList').innerHTML = html;
