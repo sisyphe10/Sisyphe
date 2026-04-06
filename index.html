@@ -172,7 +172,7 @@
             padding: 20px;
             margin-bottom: 20px;
         }
-        .budget-summary h3 { font-size: 0.95rem; color: var(--purple-light); margin-bottom: 12px; font-weight: 700; }
+        .budget-summary h3 { font-size: 1.15rem; color: #fff; margin-bottom: 8px; font-weight: 800; }
         .budget-overall {
             display: flex;
             align-items: center;
@@ -650,7 +650,7 @@ function renderBudgetList() {
     let html = '';
     groupNames.forEach(groupName => {
         const cats = Object.keys(budgetGroups[groupName].categories);
-        html += `<div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:12px;">${groupName} = ${cats.join(', ')}</div>`;
+        html += `<div style="color:#fff;font-size:0.8rem;margin-bottom:12px;">${groupName} = ${cats.join(', ')}</div>`;
     });
 
     document.getElementById('budgetList').innerHTML = html;
