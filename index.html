@@ -359,6 +359,7 @@
 
         <div class="budget-summary" id="budgetSummarySection" style="display:none;">
             <h3>이번 달 예산 현황</h3>
+            <div id="budgetList"></div>
             <div class="budget-overall">
                 <div>
                     <span class="amount" id="budgetSpent">-</span>
@@ -369,7 +370,6 @@
                 <div class="pct" id="budgetPct">-</div>
             </div>
         </div>
-        <div class="budget-list" id="budgetList"></div>
 
         <div class="calendar-wrap">
             <h3>월간 달력</h3>
@@ -638,7 +638,7 @@ function renderBudgetList() {
     let html = '';
     groupNames.forEach(groupName => {
         const cats = Object.keys(budgetGroups[groupName].categories);
-        html += `<div style="color:var(--text-muted);font-size:0.8rem;margin-top:4px;">${groupName} = ${cats.join(', ')}</div>`;
+        html += `<div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:12px;">${groupName} = ${cats.join(', ')}</div>`;
     });
 
     document.getElementById('budgetList').innerHTML = html;
