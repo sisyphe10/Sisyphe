@@ -458,11 +458,17 @@ async function loadAllData() {
             if (r[1]) appData.categories[type].push(r[1]);
         });
 
-        // Parse budgets
+        // Parse budgets (날짜, 유형, 카테고리, 금액, 메모)
         const budgetRows = (budgetRes.values || []).slice(1);
         appData.budgets = {};
         budgetRows.forEach(r => {
-            if (r[0] && r[1]) appData.budgets[r[0]] = parseInt((r[1] || '0').replace(/,/g, '')) || 0;
+            const category = r[2] || '';
+            const amount = parseInt((r[3] || '0').replace(/,/g, '')) || 0;
+            const group = r[4] || '기타';
+            if (!category) return;
+            if (!appData.budgets[group]) appData.budgets[group] = { total: 0, categories: {} };
+            appData.budgets[group].categories[category] = amount;
+            appData.budgets[group].total += amount;
         });
     } catch (e) {
         console.error('Sheet load error:', e);
@@ -590,19 +596,27 @@ function renderSummaryCards() {
 }
 
 function renderBudgetSummary() {
-    const budgets = getBudgets();
-    const totalBudget = Object.values(budgets).reduce((s, v) => s + v, 0);
-    const expenses = getTransactions(state.currentYear, state.currentMonth).filter(t => t.type === 'expense');
-    const totalSpent = sum(expenses, 'amount');
-    const pct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
-
+    const budgetGroups = getBudgets();
+    const groupNames = Object.keys(budgetGroups);
     const section = document.getElementById('budgetSummarySection');
-    if (totalBudget <= 0) {
+    if (groupNames.length === 0) {
         section.style.display = 'none';
         return;
     }
-    section.style.display = '';
 
+    const expenses = getTransactions(state.currentYear, state.currentMonth).filter(t => t.type === 'expense');
+    const spentByCategory = {};
+    expenses.forEach(tx => { spentByCategory[tx.category] = (spentByCategory[tx.category] || 0) + tx.amount; });
+
+    // 첫 번째 그룹으로 총 예산 표시
+    const firstGroup = budgetGroups[groupNames[0]];
+    const totalBudget = firstGroup.total;
+    const groupCategories = Object.keys(firstGroup.categories);
+    const totalSpent = groupCategories.reduce((s, cat) => s + (spentByCategory[cat] || 0), 0);
+    const pct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+
+    section.style.display = '';
+    document.querySelector('#budgetSummarySection h3').textContent = `${groupNames[0]} 예산 ${formatWon(totalBudget)}원`;
     document.getElementById('budgetSpent').textContent = formatWon(totalSpent);
     document.getElementById('budgetTotal').textContent = formatWon(totalBudget);
     document.getElementById('budgetPct').textContent = pct + '%';
@@ -614,38 +628,43 @@ function renderBudgetSummary() {
 }
 
 function renderBudgetList() {
-    const budgets = getBudgets();
-    const budgetEntries = Object.keys(budgets);
-    if (budgetEntries.length === 0) {
+    const budgetGroups = getBudgets();
+    const groupNames = Object.keys(budgetGroups);
+    if (groupNames.length === 0) {
         document.getElementById('budgetList').innerHTML = '';
         return;
     }
 
     const expenses = getTransactions(state.currentYear, state.currentMonth).filter(t => t.type === 'expense');
     const spentByCategory = {};
-    expenses.forEach(tx => {
-        spentByCategory[tx.category] = (spentByCategory[tx.category] || 0) + tx.amount;
+    expenses.forEach(tx => { spentByCategory[tx.category] = (spentByCategory[tx.category] || 0) + tx.amount; });
+
+    let html = '';
+    groupNames.forEach(groupName => {
+        const group = budgetGroups[groupName];
+        html += Object.keys(group.categories).map(cat => {
+            const budget = group.categories[cat] || 0;
+            const spent = spentByCategory[cat] || 0;
+            const pct = budget > 0 ? Math.round((spent / budget) * 100) : 0;
+            const pctClass = budget > 0 ? getProgressClass(pct) : 'progress-green';
+            const budgetLabel = budget > 0 ? formatWon(budget) : '-';
+            const pctLabel = budget > 0 ? pct + '%' : (spent > 0 ? formatWon(spent) + ' 사용' : '-');
+
+            return `<div class="budget-item">
+                <div class="budget-item-header">
+                    <span class="cat-name">${cat}</span>
+                    <span style="color:var(--text-muted);font-size:0.8rem;">월 예산: ${budgetLabel}</span>
+                </div>
+                <div class="progress-outer"><div class="progress-inner ${pctClass}" style="width:${budget > 0 ? Math.min(pct, 100) : 0}%"></div></div>
+                <div class="budget-item-stats">
+                    <span>${formatWon(spent)} / ${budgetLabel}</span>
+                    <span>${pctLabel}</span>
+                </div>
+            </div>`;
+        }).join('');
     });
 
-    const container = document.getElementById('budgetList');
-    container.innerHTML = budgetEntries.map(cat => {
-        const budget = budgets[cat] || 0;
-        const spent = spentByCategory[cat] || 0;
-        const pct = budget > 0 ? Math.round((spent / budget) * 100) : 0;
-        const pctClass = getProgressClass(pct);
-
-        return `<div class="budget-item">
-            <div class="budget-item-header">
-                <span class="cat-name">${cat}</span>
-                <span style="color:var(--text-muted);font-size:0.8rem;">월 예산: ${formatWon(budget)}</span>
-            </div>
-            <div class="progress-outer"><div class="progress-inner ${pctClass}" style="width:${Math.min(pct, 100)}%"></div></div>
-            <div class="budget-item-stats">
-                <span>${formatWon(spent)} 사용 / ${formatWon(budget)}</span>
-                <span>${pct}%</span>
-            </div>
-        </div>`;
-    }).join('');
+    document.getElementById('budgetList').innerHTML = html;
 }
 
 function renderCalendar() {
