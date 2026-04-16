@@ -94,18 +94,16 @@
         .tab-page.active { display: block; }
 
         /* Fitness */
-        .fitness-layout { display: flex; gap: 20px; }
-        .fitness-calendar { flex: 1; }
         .fitness-summary {
-            width: 220px; min-width: 200px;
-            background: var(--card-bg); border-radius: 12px; padding: 16px;
-            align-self: flex-start; position: sticky; top: 20px;
+            background: var(--card-bg); border-radius: 12px; padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex; gap: 24px; align-items: center; flex-wrap: wrap;
         }
-        .fitness-summary h4 { color: var(--purple-light); margin-bottom: 12px; font-size: 0.95rem; }
-        .fitness-summary .stat { margin-bottom: 10px; }
-        .fitness-summary .stat-label { color: var(--text-muted); font-size: 0.8rem; }
-        .fitness-summary .stat-value { font-size: 1.2rem; font-weight: 700; }
-        .fitness-summary .stat-sub { font-size: 0.75rem; color: var(--text-muted); }
+        .fitness-summary h4 { color: var(--purple-light); font-size: 0.95rem; margin: 0; }
+        .fitness-summary .stat { display: flex; align-items: baseline; gap: 8px; }
+        .fitness-summary .stat-label { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+        .fitness-summary .stat-value { font-size: 1.1rem; font-weight: 700; white-space: nowrap; }
+        .fitness-summary .stat-sub { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
         .fitness-calendar table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .fitness-calendar th { background: var(--input-bg); padding: 8px 6px; text-align: center; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid var(--border); }
         .fitness-calendar td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
@@ -135,8 +133,7 @@
         .week-selector button:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
         .week-label { font-size: 1rem; font-weight: bold; min-width: 200px; text-align: center; }
         @media (max-width: 768px) {
-            .fitness-layout { flex-direction: column; }
-            .fitness-summary { width: 100%; position: static; }
+            .fitness-summary { flex-direction: column; gap: 8px; }
         }
 
         /* Month Selector */
@@ -496,14 +493,12 @@
         <span class="week-label" id="weekLabel"></span>
         <button onclick="changeWeek(1)">&#9654;</button>
     </div>
-    <div class="fitness-layout">
-        <div class="fitness-calendar">
-            <table>
-                <thead><tr><th style="width:70px">날짜</th><th>계획</th><th>실제</th></tr></thead>
-                <tbody id="fitnessBody"></tbody>
-            </table>
-        </div>
-        <div class="fitness-summary" id="fitnessSummary"></div>
+    <div class="fitness-summary" id="fitnessSummary"></div>
+    <div class="fitness-calendar">
+        <table>
+            <thead><tr><th style="width:70px">날짜</th><th>계획</th><th>실제</th></tr></thead>
+            <tbody id="fitnessBody"></tbody>
+        </table>
     </div>
 </div>
 
@@ -690,16 +685,12 @@ function renderFitness() {
     var pct = planKm > 0 ? Math.round(actualKm / planKm * 100) : 0;
     var summaryHtml = '<h4>주간 요약</h4>';
     summaryHtml += '<div class="stat"><div class="stat-label">🏃 러닝</div>';
-    summaryHtml += '<div class="stat-value">' + actualKm.toFixed(1) + ' / ' + planKm + 'km</div>';
+    summaryHtml += '<div class="stat-value">' + actualKm.toFixed(1) + '/' + planKm + 'km (' + pct + '%)</div>';
     if (paceStr) summaryHtml += '<div class="stat-sub">평균 ' + paceStr + '</div>';
-    summaryHtml += '<div class="stat-sub">달성률 ' + pct + '%</div></div>';
-    summaryHtml += '<div class="stat"><div class="stat-label">운동 횟수</div>';
-    summaryHtml += '<div class="stat-value" style="font-size:0.95rem">';
-    summaryHtml += '🏃 ' + runCount + '/' + planRun + '회 ';
-    summaryHtml += '🏋️ ' + weightCount + '/' + planWeight + '회 ';
-    summaryHtml += '🎾 ' + tennisCount + '/' + planTennis + '회';
-    summaryHtml += '</div></div>';
-    summaryHtml += '<div class="stat"><div class="stat-label">총 운동 시간</div>';
+    summaryHtml += '</div>';
+    summaryHtml += '<div class="stat"><div class="stat-label">횟수</div>';
+    summaryHtml += '<div class="stat-value">🏃' + runCount + '/' + planRun + ' 🏋️' + weightCount + '/' + planWeight + ' 🎾' + tennisCount + '/' + planTennis + '</div></div>';
+    summaryHtml += '<div class="stat"><div class="stat-label">시간</div>';
     summaryHtml += '<div class="stat-value">' + actualMin + '분</div></div>';
     document.getElementById('fitnessSummary').innerHTML = summaryHtml;
 
