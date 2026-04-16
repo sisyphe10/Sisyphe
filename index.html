@@ -109,7 +109,7 @@
         .fitness-calendar td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
         .fitness-calendar td.day-cell { text-align: center; white-space: nowrap; font-weight: 600; width: 70px; }
         .fitness-calendar td.plan-cell { color: #fff; font-size: 0.8rem; line-height: 1.5; text-align: center; }
-        .fitness-calendar td.actual-cell { font-size: 0.8rem; line-height: 1.5; text-align: center; }
+        .fitness-calendar td.actual-cell { font-size: 0.8rem; line-height: 1.5; text-align: center; border-left: 2px solid var(--border); }
         .fitness-calendar tr.today { background: rgba(69,85,127,0.15); }
         .fitness-calendar tr.past td.actual-cell.empty { color: #555; }
         .plan-run, .plan-weight, .plan-tennis { color: #fff; }
@@ -492,7 +492,7 @@
     <div class="fitness-summary" id="fitnessSummary"></div>
     <div class="fitness-calendar">
         <table>
-            <thead><tr><th style="width:70px">날짜</th><th style="width:25%">🏃 러닝</th><th style="width:25%">🏋️ 웨이트</th><th style="width:25%">🎾 테니스</th><th>실제</th></tr></thead>
+            <thead><tr><th style="width:70px">날짜</th><th style="width:25%">🏃 러닝</th><th style="width:25%">🏋️ 웨이트</th><th style="width:25%">🎾 테니스</th><th style="border-left:2px solid var(--border)">실제</th></tr></thead>
             <tbody id="fitnessBody"></tbody>
         </table>
     </div>
