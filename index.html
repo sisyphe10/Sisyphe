@@ -108,8 +108,8 @@
         .fitness-calendar th { background: var(--input-bg); padding: 8px 6px; text-align: center; font-size: 0.75rem; color: #fff; border-bottom: 1px solid var(--border); }
         .fitness-calendar td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
         .fitness-calendar td.day-cell { text-align: center; white-space: nowrap; font-weight: 600; width: 70px; }
-        .fitness-calendar td.plan-cell { color: #fff; font-size: 0.8rem; line-height: 1.5; }
-        .fitness-calendar td.actual-cell { font-size: 0.8rem; line-height: 1.5; }
+        .fitness-calendar td.plan-cell { color: #fff; font-size: 0.8rem; line-height: 1.5; text-align: center; }
+        .fitness-calendar td.actual-cell { font-size: 0.8rem; line-height: 1.5; text-align: center; }
         .fitness-calendar tr.today { background: rgba(69,85,127,0.15); }
         .fitness-calendar tr.past td.actual-cell.empty { color: #555; }
         .plan-run, .plan-weight, .plan-tennis { color: #fff; }
@@ -704,10 +704,11 @@ function renderFitness() {
         var planRun_ = '', planWeight_ = '', planTennis_ = '';
         if (p && p.plan) {
             p.plan.forEach(function(s) {
-                if (s.indexOf('🏃') >= 0) planRun_ += '<div class="plan-run">' + s.replace('🏃 ','') + '</div>';
-                else if (s.indexOf('🏋') >= 0) planWeight_ += '<div class="plan-weight">' + s.replace('🏋️ ','') + '</div>';
-                else if (s.indexOf('🎾') >= 0) planTennis_ += '<div class="plan-tennis">' + s.replace('🎾 ','') + '</div>';
-                else if (s.indexOf('🏁') >= 0) planRun_ += '<div class="plan-run">' + s + '</div>';
+                var t = s.replace(/🏃 |🏋️ |🎾 /g, '').replace(/ /g, ' · ');
+                if (s.indexOf('🏃') >= 0) planRun_ += '<div class="plan-run">' + t + '</div>';
+                else if (s.indexOf('🏋') >= 0) planWeight_ += '<div class="plan-weight">' + t + '</div>';
+                else if (s.indexOf('🎾') >= 0) planTennis_ += '<div class="plan-tennis">' + t + '</div>';
+                else if (s.indexOf('🏁') >= 0) planRun_ += '<div class="plan-run">' + t + '</div>';
                 else planRun_ += '<div class="plan-rest">' + s + '</div>';
             });
         }
