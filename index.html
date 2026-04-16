@@ -93,6 +93,52 @@
         .tab-page { display: none; }
         .tab-page.active { display: block; }
 
+        /* Fitness */
+        .fitness-layout { display: flex; gap: 20px; }
+        .fitness-calendar { flex: 1; }
+        .fitness-summary {
+            width: 220px; min-width: 200px;
+            background: var(--card-bg); border-radius: 12px; padding: 16px;
+            align-self: flex-start; position: sticky; top: 20px;
+        }
+        .fitness-summary h4 { color: var(--purple-light); margin-bottom: 12px; font-size: 0.95rem; }
+        .fitness-summary .stat { margin-bottom: 10px; }
+        .fitness-summary .stat-label { color: var(--text-muted); font-size: 0.8rem; }
+        .fitness-summary .stat-value { font-size: 1.2rem; font-weight: 700; }
+        .fitness-summary .stat-sub { font-size: 0.75rem; color: var(--text-muted); }
+        .fitness-calendar table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .fitness-calendar th { background: var(--input-bg); padding: 8px 6px; text-align: center; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        .fitness-calendar td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .fitness-calendar td.day-cell { text-align: center; white-space: nowrap; font-weight: 600; width: 70px; }
+        .fitness-calendar td.plan-cell { color: var(--text-muted); font-size: 0.8rem; line-height: 1.5; }
+        .fitness-calendar td.actual-cell { font-size: 0.8rem; line-height: 1.5; }
+        .fitness-calendar tr.today { background: rgba(69,85,127,0.15); }
+        .fitness-calendar tr.past td.actual-cell.empty { color: #555; }
+        .plan-run { color: var(--accent-light); }
+        .plan-weight { color: var(--income); }
+        .plan-tennis { color: #4CAF50; }
+        .plan-rest { color: #666; }
+        .actual-run { color: var(--accent-light); font-weight: 600; }
+        .actual-weight { color: var(--income); font-weight: 600; }
+        .actual-tennis { color: #4CAF50; font-weight: 600; }
+        .dday { text-align: center; padding: 12px; background: var(--card-bg); border-radius: 12px; margin-bottom: 20px; }
+        .dday .count { font-size: 2rem; font-weight: 800; color: var(--income); }
+        .week-selector {
+            display: flex; justify-content: center; align-items: center;
+            gap: 16px; margin-bottom: 20px;
+        }
+        .week-selector button {
+            background: var(--input-bg); border: 1px solid var(--border); color: var(--text-color);
+            width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .week-selector button:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+        .week-label { font-size: 1rem; font-weight: bold; min-width: 200px; text-align: center; }
+        @media (max-width: 768px) {
+            .fitness-layout { flex-direction: column; }
+            .fitness-summary { width: 100%; position: static; }
+        }
+
         /* Month Selector */
         .month-selector {
             display: flex;
@@ -444,9 +490,20 @@
 </div><!-- /page-ledger -->
 
 <div id="page-fitness" class="tab-page">
-    <div style="text-align:center;padding:80px 20px;color:var(--text-muted);">
-        <div style="font-size:2rem;margin-bottom:12px;">Fitness</div>
-        <div>Running / Workout / Tennis</div>
+    <div class="dday" id="ddayBox"></div>
+    <div class="week-selector">
+        <button onclick="changeWeek(-1)">&#9664;</button>
+        <span class="week-label" id="weekLabel"></span>
+        <button onclick="changeWeek(1)">&#9654;</button>
+    </div>
+    <div class="fitness-layout">
+        <div class="fitness-calendar">
+            <table>
+                <thead><tr><th style="width:70px">날짜</th><th>계획</th><th>실제</th></tr></thead>
+                <tbody id="fitnessBody"></tbody>
+            </table>
+        </div>
+        <div class="fitness-summary" id="fitnessSummary"></div>
     </div>
 </div>
 
@@ -462,6 +519,248 @@ function switchMainTab(tabId) {
     document.querySelectorAll('.tab-page').forEach(function(p) {
         p.classList.toggle('active', p.id === 'page-' + tabId);
     });
+    if (tabId === 'fitness' && !fitnessLoaded) loadFitnessData();
+}
+
+// ============================================================
+// FITNESS - Training Plan & Calendar
+// ============================================================
+var RACE_DATE = '2026-05-30';
+var DAYS_KR = ['일','월','화','수','목','금','토'];
+
+var FITNESS_WEEKS = [
+    { id: 0, label: '0주차 도입', mon: '2026-04-14', targetKm: 17 },
+    { id: 1, label: '1주차 적응', mon: '2026-04-21', targetKm: 37 },
+    { id: 2, label: '2주차 기초 구축', mon: '2026-04-28', targetKm: 40 },
+    { id: 3, label: '3주차 볼륨 확대', mon: '2026-05-05', targetKm: 45 },
+    { id: 4, label: '4주차 피크', mon: '2026-05-12', targetKm: 44 },
+    { id: 5, label: '5주차 테이퍼', mon: '2026-05-19', targetKm: 37 },
+    { id: 6, label: '6주차 레이스', mon: '2026-05-26', targetKm: 34 },
+];
+
+var PLAN = {
+    // 0주차
+    '2026-04-16': {plan:['🏃 이지 런 4km Z2'], km:4},
+    '2026-04-17': {plan:['휴식 + 코어/족부 강화'], km:0},
+    '2026-04-18': {plan:['🎾 테니스 19~22시'], km:0},
+    '2026-04-19': {plan:['🏃 롱런 13km Z2'], km:13},
+    // 1주차
+    '2026-04-21': {plan:['🏃 새벽 5km 회복 Z1','🏋️ 가슴 60분'], km:5},
+    '2026-04-22': {plan:['🏃 인터벌 8km: 5×1000m @4:50'], km:8},
+    '2026-04-23': {plan:['🏃 새벽 5km 이지 Z2','🏋️ 등 60분'], km:5},
+    '2026-04-24': {plan:['휴식','🏋️ 하체 3×8'], km:0},
+    '2026-04-25': {plan:['🏃 새벽 5km 이지 Z2'], km:5},
+    '2026-04-26': {plan:['🎾 테니스 19~22시'], km:0},
+    '2026-04-27': {plan:['🏃 롱런 14km Z2 (젤 테스트)'], km:14},
+    // 2주차
+    '2026-04-28': {plan:['🏃 새벽 5km 회복','🏋️ 가슴'], km:5},
+    '2026-04-29': {plan:['🏃 HM페이스 9km: 2×15분 @5:38'], km:9},
+    '2026-04-30': {plan:['🏃 새벽 5km 이지','🏋️ 등'], km:5},
+    '2026-05-01': {plan:['휴식','🏋️ 하체 + 카프'], km:0},
+    '2026-05-02': {plan:['🏃 새벽 5km 이지 Z2'], km:5},
+    '2026-05-03': {plan:['🎾 테니스 19~22시'], km:0},
+    '2026-05-04': {plan:['🏃 롱런 16km Z2'], km:16},
+    // 3주차
+    '2026-05-05': {plan:['🏃 새벽 5km 회복','🏋️ 가슴 볼륨↓20%'], km:5},
+    '2026-05-06': {plan:['🏃 인터벌 9km: 4×1200m @4:55'], km:9},
+    '2026-05-07': {plan:['🏃 새벽 5km 이지','🏋️ 등 볼륨↓20%'], km:5},
+    '2026-05-08': {plan:['🏃 이지 4km Z2','🏋️ 하체 3×6 @80%'], km:4},
+    '2026-05-09': {plan:['🏃 새벽 5km 이지 Z2'], km:5},
+    '2026-05-10': {plan:['🎾 테니스 19~22시'], km:0},
+    '2026-05-11': {plan:['🏃 프로그레시브 롱런 17km (14km Z2 → 3km @5:38)'], km:17},
+    // 4주차
+    '2026-05-12': {plan:['휴식 (피크 주)','🏋️ 가슴 볼륨↓30%'], km:0},
+    '2026-05-13': {plan:['🏃 HM페이스 11km: 3×15분 @5:38'], km:11},
+    '2026-05-14': {plan:['🏃 새벽 5km 이지','🏋️ 등'], km:5},
+    '2026-05-15': {plan:['🏃 이지 4km','🏋️ 하체 마지막 3×4~5'], km:4},
+    '2026-05-16': {plan:['🏃 새벽 5km 이지'], km:5},
+    '2026-05-17': {plan:['🎾 테니스 (강도↓)'], km:0},
+    '2026-05-18': {plan:['🏃 피크 롱런 19km Z2 (영양 리허설)'], km:19},
+    // 5주차
+    '2026-05-19': {plan:['🏃 새벽 5km 회복','🏋️ 가슴 마지막'], km:5},
+    '2026-05-20': {plan:['🏃 템포 8km: 2×10분 @5:20'], km:8},
+    '2026-05-21': {plan:['🏃 이지 5km Z2','🏋️ 등 경량'], km:5},
+    '2026-05-22': {plan:['🏃 이지 5km + 4×100m 스트라이드'], km:5},
+    '2026-05-23': {plan:['휴식'], km:0},
+    '2026-05-24': {plan:['🎾 테니스 2시간 (강도↓)'], km:0},
+    '2026-05-25': {plan:['🏃 테이퍼 롱런 14km (11km Z2 → 3km @5:38)'], km:14},
+    // 6주차
+    '2026-05-26': {plan:['🏃 이지 조깅 4km Z1~Z2'], km:4},
+    '2026-05-27': {plan:['🏃 샤프닝 6km: 3×3분 @5:38'], km:6},
+    '2026-05-28': {plan:['휴식 + 카보로딩 시작'], km:0},
+    '2026-05-29': {plan:['🏃 프리레이스 3km (15분 조깅 + 3×100m)'], km:3},
+    '2026-05-30': {plan:['완전 휴식, 22시 전 취침'], km:0},
+    '2026-05-31': {plan:['🏁 레이스 21.1km Sub-2:00'], km:21.1},
+};
+
+var fitnessWeekIdx = 0;
+var fitnessActual = [];
+var fitnessLoaded = false;
+
+function addDays(dateStr, n) {
+    var d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0,10);
+}
+
+function getTodayStr() {
+    var now = new Date();
+    now.setHours(now.getHours() + 9); // KST
+    return now.toISOString().slice(0,10);
+}
+
+function loadFitnessData() {
+    var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' +
+              encodeURIComponent('운동기록') + '?key=' + GOOGLE_API_KEY;
+    fetch(url).then(function(r){return r.json()}).then(function(data) {
+        fitnessActual = (data.values || []).slice(1).map(function(r) {
+            return { date: r[0]||'', type: r[1]||'', distance: parseFloat(r[2])||0, duration: parseInt(r[3])||0, memo: r[4]||'' };
+        });
+        fitnessLoaded = true;
+        // 현재 주차 자동 선택
+        var today = getTodayStr();
+        for (var i = 0; i < FITNESS_WEEKS.length; i++) {
+            var wEnd = addDays(FITNESS_WEEKS[i].mon, 6);
+            if (today >= FITNESS_WEEKS[i].mon && today <= wEnd) { fitnessWeekIdx = i; break; }
+        }
+        renderFitness();
+    }).catch(function() {
+        fitnessLoaded = true;
+        renderFitness();
+    });
+}
+
+function changeWeek(dir) {
+    fitnessWeekIdx = Math.max(0, Math.min(FITNESS_WEEKS.length - 1, fitnessWeekIdx + dir));
+    renderFitness();
+}
+
+function renderFitness() {
+    var w = FITNESS_WEEKS[fitnessWeekIdx];
+    var today = getTodayStr();
+
+    // D-Day
+    var dday = Math.ceil((new Date(RACE_DATE) - new Date(today)) / 86400000);
+    var ddayBox = document.getElementById('ddayBox');
+    if (dday > 0) {
+        ddayBox.innerHTML = '🏁 하프마라톤 5/30(토) <span class="count">D-' + dday + '</span>';
+    } else if (dday === 0) {
+        ddayBox.innerHTML = '🏁 <span class="count">레이스 당일!</span>';
+    } else {
+        ddayBox.innerHTML = '🏁 레이스 완료';
+    }
+
+    // Week label
+    document.getElementById('weekLabel').textContent = w.label + ' (목표 ' + w.targetKm + 'km)';
+
+    // Collect actual data for this week
+    var wStart = w.mon;
+    var wEnd = addDays(w.mon, 6);
+    var weekActual = fitnessActual.filter(function(a) { return a.date >= wStart && a.date <= wEnd; });
+
+    // Weekly stats
+    var actualKm = 0, actualMin = 0, runCount = 0, weightCount = 0, tennisCount = 0;
+    weekActual.forEach(function(a) {
+        if (a.type === '런닝') { runCount++; actualKm += a.distance; actualMin += a.duration; }
+        else if (a.type === '웨이트') weightCount++;
+        else if (a.type === '테니스') tennisCount++;
+    });
+    var paceStr = '';
+    if (actualKm > 0 && actualMin > 0) {
+        var p = actualMin / actualKm;
+        paceStr = Math.floor(p) + ':' + ('0'+Math.round((p%1)*60)).slice(-2) + '/km';
+    }
+
+    // Plan stats
+    var planKm = 0, planRun = 0, planWeight = 0, planTennis = 0;
+    for (var i = 0; i < 7; i++) {
+        var d = addDays(w.mon, i);
+        var p = PLAN[d];
+        if (p) {
+            planKm += p.km || 0;
+            if (p.plan) p.plan.forEach(function(s) {
+                if (s.indexOf('🏃') >= 0) planRun++;
+                if (s.indexOf('🏋') >= 0) planWeight++;
+                if (s.indexOf('🎾') >= 0) planTennis++;
+            });
+        }
+    }
+
+    // Summary
+    var pct = planKm > 0 ? Math.round(actualKm / planKm * 100) : 0;
+    var summaryHtml = '<h4>주간 요약</h4>';
+    summaryHtml += '<div class="stat"><div class="stat-label">🏃 러닝</div>';
+    summaryHtml += '<div class="stat-value">' + actualKm.toFixed(1) + ' / ' + planKm + 'km</div>';
+    if (paceStr) summaryHtml += '<div class="stat-sub">평균 ' + paceStr + '</div>';
+    summaryHtml += '<div class="stat-sub">달성률 ' + pct + '%</div></div>';
+    summaryHtml += '<div class="stat"><div class="stat-label">운동 횟수</div>';
+    summaryHtml += '<div class="stat-value" style="font-size:0.95rem">';
+    summaryHtml += '🏃 ' + runCount + '/' + planRun + '회 ';
+    summaryHtml += '🏋️ ' + weightCount + '/' + planWeight + '회 ';
+    summaryHtml += '🎾 ' + tennisCount + '/' + planTennis + '회';
+    summaryHtml += '</div></div>';
+    summaryHtml += '<div class="stat"><div class="stat-label">총 운동 시간</div>';
+    summaryHtml += '<div class="stat-value">' + actualMin + '분</div></div>';
+    document.getElementById('fitnessSummary').innerHTML = summaryHtml;
+
+    // Calendar rows
+    var html = '';
+    for (var i = 0; i < 7; i++) {
+        var d = addDays(w.mon, i);
+        var dt = new Date(d + 'T00:00:00');
+        var dayName = DAYS_KR[dt.getDay()];
+        var isToday = d === today;
+        var isPast = d < today;
+        var p = PLAN[d];
+
+        // Plan column
+        var planHtml = '';
+        if (p && p.plan) {
+            p.plan.forEach(function(s) {
+                var cls = 'plan-rest';
+                if (s.indexOf('🏃') >= 0) cls = 'plan-run';
+                else if (s.indexOf('🏋') >= 0) cls = 'plan-weight';
+                else if (s.indexOf('🎾') >= 0) cls = 'plan-tennis';
+                planHtml += '<div class="' + cls + '">' + s + '</div>';
+            });
+        } else {
+            planHtml = '<span class="plan-rest">-</span>';
+        }
+
+        // Actual column
+        var dayActual = weekActual.filter(function(a) { return a.date === d; });
+        var actualHtml = '';
+        if (dayActual.length > 0) {
+            dayActual.forEach(function(a) {
+                if (a.type === '런닝') {
+                    var ap = a.duration / a.distance;
+                    var apStr = Math.floor(ap) + ':' + ('0'+Math.round((ap%1)*60)).slice(-2);
+                    actualHtml += '<div class="actual-run">🏃 ' + a.distance + 'km ' + a.duration + '분 (' + apStr + '/km)';
+                    if (a.memo) actualHtml += ' · ' + a.memo;
+                    actualHtml += '</div>';
+                } else if (a.type === '웨이트') {
+                    actualHtml += '<div class="actual-weight">🏋️ ' + a.duration + '분';
+                    if (a.memo) actualHtml += ' · ' + a.memo;
+                    actualHtml += '</div>';
+                } else if (a.type === '테니스') {
+                    actualHtml += '<div class="actual-tennis">🎾 ' + a.duration + '분';
+                    if (a.memo) actualHtml += ' · ' + a.memo;
+                    actualHtml += '</div>';
+                }
+            });
+        } else if (isPast) {
+            actualHtml = '<span style="color:#555">-</span>';
+        }
+
+        var rowCls = isToday ? ' class="today"' : '';
+        var dayColor = dayName === '토' ? 'color:var(--accent-light)' : dayName === '일' ? 'color:var(--expense)' : '';
+        html += '<tr' + rowCls + '>';
+        html += '<td class="day-cell" style="' + dayColor + '">' + d.slice(5) + '<br>' + dayName + '</td>';
+        html += '<td class="plan-cell">' + planHtml + '</td>';
+        html += '<td class="actual-cell' + (isPast && dayActual.length === 0 ? ' empty' : '') + '">' + actualHtml + '</td>';
+        html += '</tr>';
+    }
+    document.getElementById('fitnessBody').innerHTML = html;
 }
 
 // ============================================================
