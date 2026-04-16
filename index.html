@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sisyphe Ledger</title>
+    <title>Sisyphe</title>
     <link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap' rel='stylesheet'>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>document.addEventListener('DOMContentLoaded',function(){if(window.Chart)Chart.defaults.font.family="'Inter','Noto Sans KR',sans-serif";});</script>
@@ -63,6 +63,35 @@
             background: #0B8043;
             color: #fff;
         }
+
+        /* Main Tabs */
+        .main-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--navy);
+        }
+        .main-tab {
+            padding: 10px 32px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            background: var(--input-bg);
+            transition: all 0.2s;
+        }
+        .main-tab:hover { color: var(--text-color); }
+        .main-tab.active {
+            color: var(--accent-light);
+            background: var(--card-bg);
+            border-color: var(--navy) var(--navy) transparent;
+            margin-bottom: -2px;
+        }
+        .tab-page { display: none; }
+        .tab-page.active { display: block; }
 
         /* Month Selector */
         .month-selector {
@@ -324,9 +353,16 @@
 <body>
 
 <header>
-    <h1>Sisyphe Ledger</h1>
+    <h1>Sisyphe</h1>
     <a class="sheet-link" href="https://docs.google.com/spreadsheets/d/1V41yiwO4VrVUhjhqHyu8JGsuGcqw6pZen0NHdxzXHGs/edit" target="_blank">Sheet</a>
 </header>
+
+<div class="main-tabs">
+    <div class="main-tab active" onclick="switchMainTab('ledger')">Ledger</div>
+    <div class="main-tab" onclick="switchMainTab('fitness')">Fitness</div>
+</div>
+
+<div id="page-ledger" class="tab-page active">
 
 <div class="month-selector">
     <button id="prevMonth">&#9664;</button>
@@ -392,9 +428,29 @@
     </div>
 </main>
 
+</div><!-- /page-ledger -->
+
+<div id="page-fitness" class="tab-page">
+    <div style="text-align:center;padding:80px 20px;color:var(--text-muted);">
+        <div style="font-size:2rem;margin-bottom:12px;">Fitness</div>
+        <div>Running / Workout / Tennis</div>
+    </div>
+</div>
+
 <footer>Sisyphe &copy; 2026</footer>
 
 <script>
+// ============================================================
+// MAIN TAB SWITCHING
+function switchMainTab(tabId) {
+    document.querySelectorAll('.main-tab').forEach(function(t) {
+        t.classList.toggle('active', t.textContent.toLowerCase() === tabId);
+    });
+    document.querySelectorAll('.tab-page').forEach(function(p) {
+        p.classList.toggle('active', p.id === 'page-' + tabId);
+    });
+}
+
 // ============================================================
 // CONSTANTS
 // ============================================================
