@@ -741,7 +741,7 @@ function renderFitness() {
         var rowCls = isToday ? ' class="today"' : '';
         var dayColor = dayName === '토' ? 'color:var(--accent-light)' : dayName === '일' ? 'color:var(--expense)' : '';
         html += '<tr' + rowCls + '>';
-        html += '<td class="day-cell" style="' + dayColor + '">' + d.slice(5) + '<br>' + dayName + '</td>';
+        html += '<td class="day-cell" style="' + dayColor + '">' + d.slice(5) + ' ' + dayName + '</td>';
         html += '<td class="plan-cell">' + (planRun_ || '-') + '</td>';
         html += '<td class="plan-cell">' + (planWeight_ || '-') + '</td>';
         html += '<td class="plan-cell">' + (planTennis_ || '-') + '</td>';
