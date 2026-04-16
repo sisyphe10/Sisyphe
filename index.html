@@ -496,7 +496,7 @@
     <div class="fitness-summary" id="fitnessSummary"></div>
     <div class="fitness-calendar">
         <table>
-            <thead><tr><th style="width:70px">날짜</th><th>계획</th><th>실제</th></tr></thead>
+            <thead><tr><th style="width:70px">날짜</th><th>🏃 러닝</th><th>🏋️ 웨이트</th><th>🎾 테니스</th><th>실제</th></tr></thead>
             <tbody id="fitnessBody"></tbody>
         </table>
     </div>
@@ -704,18 +704,16 @@ function renderFitness() {
         var isPast = d < today;
         var p = PLAN[d];
 
-        // Plan column
-        var planHtml = '';
+        // Plan columns (러닝 / 웨이트 / 테니스)
+        var planRun_ = '', planWeight_ = '', planTennis_ = '';
         if (p && p.plan) {
             p.plan.forEach(function(s) {
-                var cls = 'plan-rest';
-                if (s.indexOf('🏃') >= 0) cls = 'plan-run';
-                else if (s.indexOf('🏋') >= 0) cls = 'plan-weight';
-                else if (s.indexOf('🎾') >= 0) cls = 'plan-tennis';
-                planHtml += '<div class="' + cls + '">' + s + '</div>';
+                if (s.indexOf('🏃') >= 0) planRun_ += '<div class="plan-run">' + s.replace('🏃 ','') + '</div>';
+                else if (s.indexOf('🏋') >= 0) planWeight_ += '<div class="plan-weight">' + s.replace('🏋️ ','') + '</div>';
+                else if (s.indexOf('🎾') >= 0) planTennis_ += '<div class="plan-tennis">' + s.replace('🎾 ','') + '</div>';
+                else if (s.indexOf('🏁') >= 0) planRun_ += '<div class="plan-run">' + s + '</div>';
+                else planRun_ += '<div class="plan-rest">' + s + '</div>';
             });
-        } else {
-            planHtml = '<span class="plan-rest">-</span>';
         }
 
         // Actual column
@@ -747,7 +745,9 @@ function renderFitness() {
         var dayColor = dayName === '토' ? 'color:var(--accent-light)' : dayName === '일' ? 'color:var(--expense)' : '';
         html += '<tr' + rowCls + '>';
         html += '<td class="day-cell" style="' + dayColor + '">' + d.slice(5) + '<br>' + dayName + '</td>';
-        html += '<td class="plan-cell">' + planHtml + '</td>';
+        html += '<td class="plan-cell">' + (planRun_ || '-') + '</td>';
+        html += '<td class="plan-cell">' + (planWeight_ || '-') + '</td>';
+        html += '<td class="plan-cell">' + (planTennis_ || '-') + '</td>';
         html += '<td class="actual-cell' + (isPast && dayActual.length === 0 ? ' empty' : '') + '">' + actualHtml + '</td>';
         html += '</tr>';
     }
