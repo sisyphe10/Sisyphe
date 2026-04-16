@@ -157,6 +157,15 @@
         .chart-container { position: relative; height: 280px; }
 
         /* Tables */
+        .category-detail {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .category-detail h3 { font-size: 0.95rem; color: var(--purple-light); margin-bottom: 12px; font-weight: 700; }
+
         .table-wrap {
             background: var(--card-bg);
             border-radius: 12px;
@@ -421,6 +430,10 @@
                 <div class="chart-container"><canvas id="categoryChart"></canvas></div>
             </div>
         </div>
+        <div class="category-detail" id="categoryDetail" style="display:none;">
+            <h3 id="categoryDetailTitle">카테고리 상세</h3>
+            <div id="categoryDetailBody"></div>
+        </div>
         <div class="table-wrap">
             <h3>최근 거래</h3>
             <div id="recentTxBody"></div>
@@ -623,6 +636,11 @@ function renderMonthSelector() {
 // DASHBOARD
 // ============================================================
 function renderDashboard() {
+    // 카테고리 상세 닫기
+    _activeCategoryDetail = null;
+    var cd = document.getElementById('categoryDetail');
+    if (cd) cd.style.display = 'none';
+
     renderSummaryCards();
     renderBudgetSummary();
     renderBudgetList();
@@ -851,6 +869,13 @@ function renderCategoryChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            onClick: (evt, elements) => {
+                if (elements.length > 0) {
+                    const idx = elements[0].index;
+                    const category = labels[idx];
+                    showCategoryDetail(category);
+                }
+            },
             plugins: {
                 legend: {
                     position: 'right',
@@ -862,6 +887,47 @@ function renderCategoryChart() {
             }
         }
     });
+}
+
+var _activeCategoryDetail = null;
+
+function showCategoryDetail(category) {
+    const wrap = document.getElementById('categoryDetail');
+    // 같은 카테고리 다시 클릭 시 닫기
+    if (_activeCategoryDetail === category) {
+        wrap.style.display = 'none';
+        _activeCategoryDetail = null;
+        return;
+    }
+    _activeCategoryDetail = category;
+
+    const txs = getTransactions(state.currentYear, state.currentMonth)
+        .filter(tx => tx.type === 'expense' && tx.category === category)
+        .sort((a, b) => b.date.localeCompare(a.date));
+
+    const monthLabel = `${state.currentYear}년 ${state.currentMonth}월`;
+    document.getElementById('categoryDetailTitle').textContent = `${monthLabel} ${category} 내역`;
+
+    const body = document.getElementById('categoryDetailBody');
+    if (txs.length === 0) {
+        body.innerHTML = '<div class="empty-state">해당 카테고리의 거래 내역이 없습니다</div>';
+    } else {
+        let total = 0;
+        let html = '<table><thead><tr><th>날짜</th><th>금액</th><th>메모</th></tr></thead><tbody>';
+        txs.forEach(tx => {
+            total += tx.amount;
+            html += `<tr>
+                <td>${formatDate(tx.date)}</td>
+                <td class="amount-expense">-${formatWon(tx.amount)}</td>
+                <td style="color:var(--text-muted)">${tx.memo || ''}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        html += `<div style="text-align:right;margin-top:10px;font-weight:700;color:var(--expense);">합계: -${formatWon(total)} (${txs.length}건)</div>`;
+        body.innerHTML = html;
+    }
+    wrap.style.display = 'block';
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function renderRecentTransactions() {
