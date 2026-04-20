@@ -744,13 +744,18 @@ function renderFitness() {
                     actualHtml += '</div>';
                 } else if (a.type === '웨이트') {
                     actualHtml += '<div class="actual-weight">🏋️';
-                    if (a.duration) actualHtml += ' ' + Math.round(a.duration) + '분';
-                    if (a.fatigue != null && a.fatigue !== '') actualHtml += ' · 피로도 ' + a.fatigue;
+                    var wparts = [];
+                    if (a.duration) wparts.push(Math.round(a.duration) + '분');
+                    if (a.fatigue != null && a.fatigue !== '') wparts.push('피로도 ' + a.fatigue);
+                    if (wparts.length) actualHtml += ' ' + wparts.join(' · ');
                     if (a.memo) actualHtml += '<div class="actual-sub">📝 ' + a.memo + '</div>';
                     actualHtml += '</div>';
                 } else if (a.type === '테니스') {
-                    actualHtml += '<div class="actual-tennis">🎾 ' + Math.round(a.duration) + '분';
-                    if (a.fatigue != null && a.fatigue !== '') actualHtml += ' · 피로도 ' + a.fatigue;
+                    actualHtml += '<div class="actual-tennis">🎾';
+                    var tparts = [];
+                    if (a.duration) tparts.push(Math.round(a.duration) + '분');
+                    if (a.fatigue != null && a.fatigue !== '') tparts.push('피로도 ' + a.fatigue);
+                    if (tparts.length) actualHtml += ' ' + tparts.join(' · ');
                     if (a.memo) actualHtml += '<div class="actual-sub">📝 ' + a.memo + '</div>';
                     actualHtml += '</div>';
                 }
