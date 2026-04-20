@@ -604,7 +604,16 @@ function getTodayStr() {
 function loadFitnessData() {
     fetch('data.json?t=' + Date.now()).then(function(r){return r.json()}).then(function(data) {
         fitnessActual = (data.fitness || []).map(function(r) {
-            return { date: r.date||'', type: r.type||'', distance: parseFloat(r.distance)||0, duration: parseFloat(r.duration)||0, memo: r.memo||'' };
+            return {
+                date: r.date||'',
+                type: r.type||'',
+                distance: parseFloat(r.distance)||0,
+                duration: parseFloat(r.duration)||0,
+                hr: r.hr || null,
+                cadence: r.cadence || null,
+                fatigue: (r.fatigue !== undefined && r.fatigue !== null) ? r.fatigue : null,
+                memo: r.memo||''
+            };
         });
         fitnessLoaded = true;
         // 현재 주차 자동 선택
