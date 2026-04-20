@@ -601,11 +601,9 @@ function getTodayStr() {
 }
 
 function loadFitnessData() {
-    var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' +
-              encodeURIComponent('운동기록') + '?key=' + GOOGLE_API_KEY;
-    fetch(url).then(function(r){return r.json()}).then(function(data) {
-        fitnessActual = (data.values || []).slice(1).map(function(r) {
-            return { date: r[0]||'', type: r[1]||'', distance: parseFloat(r[2])||0, duration: parseInt(r[3])||0, memo: r[4]||'' };
+    fetch('data.json?t=' + Date.now()).then(function(r){return r.json()}).then(function(data) {
+        fitnessActual = (data.fitness || []).map(function(r) {
+            return { date: r.date||'', type: r.type||'', distance: parseFloat(r.distance)||0, duration: parseFloat(r.duration)||0, memo: r.memo||'' };
         });
         fitnessLoaded = true;
         // 현재 주차 자동 선택

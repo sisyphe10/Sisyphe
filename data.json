@@ -61,5 +61,21 @@
   "categories": {
     "expense": [],
     "income": []
-  }
+  },
+  "fitness": [
+    {
+      "date": "2026-04-20",
+      "type": "런닝",
+      "distance": 5.01,
+      "duration": 31.43,
+      "memo": "31:26"
+    },
+    {
+      "date": "2026-04-20",
+      "type": "웨이트",
+      "distance": 0,
+      "duration": 0,
+      "memo": "데드리프트 20kg x 20회 x 3세트, 인클라인 벤치프레스 20kg x 20회 x 3세트, 롱풀 30kg x 10회 x 3세트"
+    }
+  ]
 }
