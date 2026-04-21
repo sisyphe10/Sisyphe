@@ -112,6 +112,17 @@
         .fitness-calendar td.actual-cell { font-size: 0.8rem; line-height: 1.5; text-align: center; border-left: 2px solid #444; }
         .fitness-calendar tr.today { background: rgba(69,85,127,0.3); }
         .fitness-calendar tr.past td.actual-cell.empty { color: #555; }
+        .weight-log table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .weight-log th { background: var(--input-bg); padding: 8px 6px; text-align: center; font-size: 0.75rem; color: #fff; border: 1px solid #444; }
+        .weight-log td { padding: 8px 6px; border: 1px solid #444; color: #fff; font-size: 0.85rem; }
+        .weight-log td.date-cell { text-align: center; white-space: nowrap; font-weight: 600; }
+        .weight-log td.bp-cell { text-align: center; color: var(--accent-light); }
+        .weight-log td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .weight-log tr.session-start td { border-top: 2px solid var(--accent-light); }
+        .weight-summary { display: flex; gap: 16px; flex-wrap: wrap; }
+        .weight-summary .stat { background: var(--input-bg); padding: 10px 14px; border-radius: 6px; border: 1px solid #444; }
+        .weight-summary .stat-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; }
+        .weight-summary .stat-value { font-size: 1rem; font-weight: 700; color: #fff; }
         .plan-run, .plan-weight, .plan-tennis { color: #fff; }
         .plan-rest { color: #fff; }
         .actual-run, .actual-weight, .actual-tennis { color: #fff; font-weight: 600; }
@@ -409,6 +420,7 @@
 <div class="main-tabs">
     <div class="main-tab active" onclick="switchMainTab('ledger')">Ledger</div>
     <div class="main-tab" onclick="switchMainTab('fitness')">Fitness</div>
+    <div class="main-tab" onclick="switchMainTab('weight')">Weight</div>
 </div>
 
 <div id="page-ledger" class="tab-page active">
@@ -499,6 +511,25 @@
     </div>
 </div>
 
+<div id="page-weight" class="tab-page">
+    <div class="weight-summary" id="weightSummary" style="margin-bottom:16px;"></div>
+    <div class="weight-log">
+        <table>
+            <thead><tr>
+                <th style="width:90px">날짜</th>
+                <th style="width:60px">부위</th>
+                <th>종목</th>
+                <th style="width:70px;text-align:right">무게</th>
+                <th style="width:60px;text-align:right">반복</th>
+                <th style="width:50px;text-align:right">세트</th>
+                <th style="width:80px;text-align:right">볼륨</th>
+                <th style="width:60px;text-align:right">피로도</th>
+            </tr></thead>
+            <tbody id="weightBody"></tbody>
+        </table>
+    </div>
+</div>
+
 <footer>Sisyphe &copy; 2026</footer>
 
 <script>
@@ -512,6 +543,8 @@ function switchMainTab(tabId) {
         p.classList.toggle('active', p.id === 'page-' + tabId);
     });
     if (tabId === 'fitness' && !fitnessLoaded) loadFitnessData();
+    if (tabId === 'weight' && !fitnessLoaded) loadFitnessData();
+    if (tabId === 'weight') renderWeight();
 }
 
 // ============================================================
@@ -670,6 +703,99 @@ function loadFitnessData() {
 function changeWeek(dir) {
     fitnessWeekIdx = Math.max(0, Math.min(FITNESS_WEEKS.length - 1, fitnessWeekIdx + dir));
     renderFitness();
+}
+
+// 웨이트 메모에서 운동별 상세 파싱 (무게/반복/세트 포함)
+function parseWeightDetails(memo) {
+    if (!memo) return [];
+    return memo.split(',').map(function(seg) {
+        var s = seg.trim();
+        var tokens = s.split(/\s+/);
+        var nameTokens = [];
+        for (var i = 0; i < tokens.length; i++) {
+            if (/\d/.test(tokens[i])) break;
+            nameTokens.push(tokens[i]);
+        }
+        var wm = s.match(/(\d+(?:\.\d+)?)\s*kg/i);
+        var rm = s.match(/(\d+)\s*회/);
+        var sm = s.match(/(\d+)\s*세트/);
+        return {
+            name: nameTokens.join(' '),
+            weight: wm ? parseFloat(wm[1]) : null,
+            reps: rm ? parseInt(rm[1]) : null,
+            sets: sm ? parseInt(sm[1]) : null
+        };
+    }).filter(function(e) { return e.name; });
+}
+
+function renderWeight() {
+    if (!fitnessActual || !fitnessActual.length) {
+        document.getElementById('weightBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#888;padding:30px">데이터 없음</td></tr>';
+        document.getElementById('weightSummary').innerHTML = '';
+        return;
+    }
+
+    // 웨이트 세션만 필터 + 최신 날짜순
+    var sessions = fitnessActual.filter(function(a) { return a.type === '웨이트'; })
+                                 .sort(function(a, b) { return b.date.localeCompare(a.date); });
+
+    // 각 세션 → 운동별 행으로 확장
+    var rows = [];
+    sessions.forEach(function(s) {
+        var details = parseWeightDetails(s.memo);
+        if (!details.length) {
+            rows.push({ date: s.date, part: detectBodyPart(s.memo), name: s.memo || '-',
+                        weight: null, reps: null, sets: null, fatigue: s.fatigue, first: true });
+            return;
+        }
+        details.forEach(function(d, i) {
+            rows.push({
+                date: s.date,
+                part: detectBodyPart(d.name),
+                name: d.name,
+                weight: d.weight,
+                reps: d.reps,
+                sets: d.sets,
+                volume: (d.weight && d.reps && d.sets) ? d.weight * d.reps * d.sets : null,
+                fatigue: i === 0 ? s.fatigue : null,
+                first: i === 0
+            });
+        });
+    });
+
+    // 요약: 최근 7일 (세션 수, 부위별 세션, 총 볼륨)
+    var today = getTodayStr();
+    var weekAgo = addDays(today, -7);
+    var recent = rows.filter(function(r) { return r.date >= weekAgo && r.date <= today; });
+    var sessionDates = {};
+    recent.forEach(function(r) { sessionDates[r.date] = 1; });
+    var weekSessions = Object.keys(sessionDates).length;
+    var weekVolume = recent.reduce(function(sum, r) { return sum + (r.volume || 0); }, 0);
+    var partCount = {};
+    recent.forEach(function(r) { if (r.part) partCount[r.part] = (partCount[r.part] || 0) + 1; });
+    var topPart = Object.keys(partCount).sort(function(a, b) { return partCount[b] - partCount[a]; })[0] || '-';
+
+    var summaryHtml = '<div class="stat"><div class="stat-label">최근 7일 세션</div><div class="stat-value">' + weekSessions + '회</div></div>';
+    summaryHtml += '<div class="stat"><div class="stat-label">최근 7일 볼륨</div><div class="stat-value">' + Math.round(weekVolume).toLocaleString() + ' kg</div></div>';
+    summaryHtml += '<div class="stat"><div class="stat-label">주력 부위</div><div class="stat-value">' + topPart + '</div></div>';
+    document.getElementById('weightSummary').innerHTML = summaryHtml;
+
+    // 행 렌더링
+    var html = '';
+    rows.forEach(function(r) {
+        var cls = r.first ? ' class="session-start"' : '';
+        html += '<tr' + cls + '>';
+        html += '<td class="date-cell">' + (r.first ? r.date : '') + '</td>';
+        html += '<td class="bp-cell">' + (r.part || '-') + '</td>';
+        html += '<td>' + r.name + '</td>';
+        html += '<td class="num">' + (r.weight != null ? r.weight + 'kg' : '-') + '</td>';
+        html += '<td class="num">' + (r.reps != null ? r.reps : '-') + '</td>';
+        html += '<td class="num">' + (r.sets != null ? r.sets : '-') + '</td>';
+        html += '<td class="num">' + (r.volume != null ? Math.round(r.volume).toLocaleString() : '-') + '</td>';
+        html += '<td class="num">' + (r.fatigue != null ? r.fatigue : '') + '</td>';
+        html += '</tr>';
+    });
+    document.getElementById('weightBody').innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:#888;padding:30px">웨이트 기록 없음</td></tr>';
 }
 
 function renderFitness() {
