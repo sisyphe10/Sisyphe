@@ -117,7 +117,7 @@
         .weight-log td { padding: 8px 6px; border: 1px solid #444; color: #fff; font-size: 0.85rem; text-align: center; }
         .weight-log td.date-cell { white-space: nowrap; font-weight: 600; }
         .weight-log td.bp-cell { color: var(--accent-light); }
-        .weight-log td.num { font-variant-numeric: tabular-nums; }
+        .weight-log td.num { text-align: center !important; font-variant-numeric: tabular-nums; }
         .weight-log tr.session-start td { border-top: 2px solid var(--accent-light); }
         .weight-summary { display: flex; gap: 16px; flex-wrap: wrap; }
         .weight-summary .stat { background: var(--input-bg); padding: 10px 14px; border-radius: 6px; border: 1px solid #444; }
@@ -519,11 +519,11 @@
                 <th style="width:90px">날짜</th>
                 <th style="width:60px">부위</th>
                 <th>종목</th>
-                <th style="width:70px;text-align:right">무게</th>
-                <th style="width:60px;text-align:right">반복</th>
-                <th style="width:50px;text-align:right">세트</th>
-                <th style="width:80px;text-align:right">볼륨</th>
-                <th style="width:60px;text-align:right">피로도</th>
+                <th style="width:70px">무게</th>
+                <th style="width:60px">반복</th>
+                <th style="width:50px">세트</th>
+                <th style="width:80px">볼륨</th>
+                <th style="width:60px">피로도</th>
             </tr></thead>
             <tbody id="weightBody"></tbody>
         </table>
