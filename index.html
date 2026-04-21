@@ -601,6 +601,20 @@ function getTodayStr() {
     return now.toISOString().slice(0,10);
 }
 
+// 웨이트 메모에서 운동명만 추출 (kg/회/세트 등 숫자 정보 제거)
+function parseExerciseNames(memo) {
+    if (!memo) return [];
+    return memo.split(',').map(function(seg) {
+        var tokens = seg.trim().split(/\s+/);
+        var names = [];
+        for (var i = 0; i < tokens.length; i++) {
+            if (/\d/.test(tokens[i])) break;  // 숫자 포함 토큰에서 중단
+            names.push(tokens[i]);
+        }
+        return names.join(' ');
+    }).filter(function(n) { return n.length > 0; });
+}
+
 // 웨이트 메모에서 운동 부위 감지 (등/가슴/어깨/팔/하체, 하체+기타=전신)
 function detectBodyPart(memo) {
     if (!memo) return '';
@@ -771,10 +785,13 @@ function renderFitness() {
                     actualHtml += '<div class="actual-weight">🏋️';
                     if (bodyPart) actualHtml += ' ' + bodyPart;
                     if (a.duration) actualHtml += ' (' + Math.round(a.duration) + '분)';
-                    var wsub = [];
-                    if (a.fatigue != null && a.fatigue !== '') wsub.push('피로도 ' + a.fatigue);
-                    if (wsub.length) actualHtml += '<div class="actual-sub">' + wsub.join(' · ') + '</div>';
-                    if (a.memo) actualHtml += '<div class="actual-sub">📝 ' + a.memo + '</div>';
+                    if (a.fatigue != null && a.fatigue !== '') {
+                        actualHtml += '<div class="actual-sub">피로도 ' + a.fatigue + '</div>';
+                    }
+                    var exNames = parseExerciseNames(a.memo);
+                    if (exNames.length) {
+                        actualHtml += '<div class="actual-sub">' + exNames.join('<br>') + '</div>';
+                    }
                     actualHtml += '</div>';
                 } else if (a.type === '테니스') {
                     actualHtml += '<div class="actual-tennis">🎾';
