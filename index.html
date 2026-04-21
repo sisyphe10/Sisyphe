@@ -517,6 +517,7 @@
         <table>
             <thead><tr>
                 <th style="width:90px">날짜</th>
+                <th style="width:40px">요일</th>
                 <th style="width:60px">부위</th>
                 <th>종목</th>
                 <th style="width:70px">무게</th>
@@ -730,7 +731,7 @@ function parseWeightDetails(memo) {
 
 function renderWeight() {
     if (!fitnessActual || !fitnessActual.length) {
-        document.getElementById('weightBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#888;padding:30px">데이터 없음</td></tr>';
+        document.getElementById('weightBody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#888;padding:30px">데이터 없음</td></tr>';
         document.getElementById('weightSummary').innerHTML = '';
         return;
     }
@@ -784,8 +785,10 @@ function renderWeight() {
     var html = '';
     rows.forEach(function(r) {
         var cls = r.first ? ' class="session-start"' : '';
+        var dayStr = r.first ? DAYS_KR[new Date(r.date + 'T00:00:00').getDay()] : '';
         html += '<tr' + cls + '>';
         html += '<td class="date-cell">' + (r.first ? r.date : '') + '</td>';
+        html += '<td class="date-cell">' + dayStr + '</td>';
         html += '<td class="bp-cell">' + (r.part || '-') + '</td>';
         html += '<td>' + r.name + '</td>';
         html += '<td class="num">' + (r.weight != null ? r.weight + 'kg' : '-') + '</td>';
@@ -795,7 +798,7 @@ function renderWeight() {
         html += '<td class="num">' + (r.fatigue != null ? r.fatigue : '') + '</td>';
         html += '</tr>';
     });
-    document.getElementById('weightBody').innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:#888;padding:30px">웨이트 기록 없음</td></tr>';
+    document.getElementById('weightBody').innerHTML = html || '<tr><td colspan="9" style="text-align:center;color:#888;padding:30px">웨이트 기록 없음</td></tr>';
 }
 
 function renderFitness() {
