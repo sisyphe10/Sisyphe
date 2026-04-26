@@ -896,7 +896,8 @@ function renderFitness() {
         var dayActual = weekActual.filter(function(a) { return a.date === d; });
         var actualHtml = '';
         if (dayActual.length > 0) {
-            dayActual.forEach(function(a) {
+            dayActual.forEach(function(a, _idx) {
+                if (_idx > 0) actualHtml += '<div style="height:10px"></div>';
                 // helper: 분(소수) → "mm:ss"
                 var fmtDur = function(minDec) {
                     var total = Math.round(minDec * 60);
@@ -917,11 +918,13 @@ function renderFitness() {
                     var bodyPart = detectBodyPart(a.memo);
                     actualHtml += '<div class="actual-weight">🏋️';
                     if (bodyPart) actualHtml += ' ' + bodyPart;
-                    if (a.duration) actualHtml += ' (' + Math.round(a.duration) + '분)';
-                    if (a.fatigue != null && a.fatigue !== '') {
-                        actualHtml += '<div class="actual-sub">피로도 ' + a.fatigue + '</div>';
-                    }
+                    var meta = [];
+                    if (a.duration) meta.push(Math.round(a.duration) + '분');
+                    if (a.fatigue != null && a.fatigue !== '') meta.push('피로도 ' + a.fatigue);
+                    if (meta.length) actualHtml += ' (' + meta.join(', ') + ')';
                     var exNames = parseExerciseNames(a.memo);
+                    // 같은 운동 dedupe (순서 유지)
+                    exNames = exNames.filter(function(n, i) { return exNames.indexOf(n) === i; });
                     if (exNames.length) {
                         actualHtml += '<div class="actual-sub">' + exNames.join('<br>') + '</div>';
                     }
