@@ -81,6 +81,13 @@
       "fatigue": 2
     },
     {
+      "date": "2026-04-21",
+      "type": "테니스",
+      "distance": 0,
+      "duration": 100,
+      "fatigue": 2
+    },
+    {
       "date": "2026-04-23",
       "type": "웨이트",
       "distance": 0,
@@ -97,6 +104,13 @@
       "cadence": 178,
       "fatigue": 7,
       "memo": "토요일 오전 러닝 15km"
+    },
+    {
+      "date": "2026-04-25",
+      "type": "테니스",
+      "distance": 0,
+      "duration": 150,
+      "fatigue": 8
     }
   ]
 }
