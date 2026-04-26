@@ -624,9 +624,11 @@ var fitnessActual = [];
 var fitnessLoaded = false;
 
 function addDays(dateStr, n) {
-    var d = new Date(dateStr + 'T00:00:00');
+    // 정오 기준 로컬 파싱 → 로컬 getFullYear/Month/Date 사용 (timezone shift 방지)
+    var d = new Date(dateStr + 'T12:00:00');
     d.setDate(d.getDate() + n);
-    return d.toISOString().slice(0,10);
+    var y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+    return y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
 }
 
 function getTodayStr() {
