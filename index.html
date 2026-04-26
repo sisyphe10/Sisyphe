@@ -906,7 +906,7 @@ function renderFitness() {
                 if (a.type === '런닝') {
                     var ap = a.duration / a.distance;
                     var apStr = Math.floor(ap) + ':' + ('0'+Math.round((ap%1)*60)).slice(-2);
-                    actualHtml += '<div class="actual-run">🏃 ' + a.distance + 'km ' + fmtDur(a.duration) + ' (' + apStr + '/km)';
+                    actualHtml += '<div class="actual-run">🏃 ' + Math.round(a.distance) + 'km ' + fmtDur(a.duration) + ' (' + apStr + '/km)';
                     var extras = [];
                     if (a.hr) extras.push('HR ' + a.hr);
                     if (a.cadence) extras.push('케이던스 ' + a.cadence);
