@@ -817,7 +817,9 @@ function renderFitness() {
     }
 
     // Week label
-    document.getElementById('weekLabel').textContent = w.label + ' (목표 ' + w.targetKm + 'km)';
+    var _wEndD = addDays(w.mon, 6);
+    var _fmtMD = function(d) { var dt = new Date(d + 'T00:00:00'); return (dt.getMonth()+1) + '/' + dt.getDate(); };
+    document.getElementById('weekLabel').textContent = _fmtMD(w.mon) + '(월) ~ ' + _fmtMD(_wEndD) + '(일) · ' + w.label + ' (목표 ' + w.targetKm + 'km)';
 
     // Collect actual data for this week
     var wStart = w.mon;
@@ -862,7 +864,7 @@ function renderFitness() {
     summaryHtml += '<div class="stat"><div class="stat-label">횟수</div>';
     summaryHtml += '<div class="stat-value">🏃' + runCount + '/' + planRun + ' 🏋️' + weightCount + '/' + planWeight + ' 🎾' + tennisCount + '/' + planTennis + '</div></div>';
     summaryHtml += '<div class="stat"><div class="stat-label">시간</div>';
-    summaryHtml += '<div class="stat-value">' + actualMin + '분</div></div>';
+    summaryHtml += '<div class="stat-value">' + Math.round(actualMin) + '분</div></div>';
     document.getElementById('fitnessSummary').innerHTML = summaryHtml;
 
     // Calendar rows
