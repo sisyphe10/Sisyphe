@@ -312,6 +312,27 @@
             margin-top: 6px;
         }
 
+        .budget-overall { cursor: pointer; transition: opacity 0.2s; user-select: none; }
+        .budget-overall:hover { opacity: 0.85; }
+        .budget-detail { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+        .budget-detail-cat { margin-bottom: 14px; }
+        .budget-detail-cat:last-child { margin-bottom: 0; }
+        .budget-detail-cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed var(--border);
+        }
+        .budget-detail-cat-header .name { color: var(--purple-light); font-weight: 700; font-size: 0.92rem; }
+        .budget-detail-cat-header .stat { color: var(--text-muted); font-size: 0.78rem; }
+        .budget-detail-tx { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.85rem; gap: 12px; }
+        .budget-detail-tx .left { color: #ddd; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .budget-detail-tx .left .date { color: var(--text-muted); margin-right: 8px; font-size: 0.78rem; }
+        .budget-detail-tx .amount { color: var(--expense); font-weight: 600; white-space: nowrap; }
+        .budget-detail-empty { color: var(--text-muted); font-size: 0.8rem; padding: 4px 0; font-style: italic; }
+
         /* Calendar */
         .calendar-wrap {
             background: var(--card-bg);
@@ -457,7 +478,7 @@
         <div class="budget-summary" id="budgetSummarySection" style="display:none;">
             <h3>이번 달 예산 현황</h3>
             <div id="budgetList"></div>
-            <div class="budget-overall">
+            <div class="budget-overall" onclick="toggleBudgetDetail()" title="클릭하여 카테고리별 사용 내역 보기">
                 <div>
                     <span class="amount" id="budgetSpent">-</span>
                     <span style="color:var(--text-muted);"> / </span>
@@ -466,6 +487,7 @@
                 <div class="progress-outer"><div class="progress-inner" id="budgetBar"></div></div>
                 <div class="pct" id="budgetPct">-</div>
             </div>
+            <div id="budgetDetail" class="budget-detail" style="display:none;"></div>
         </div>
 
         <div class="calendar-wrap">
@@ -1215,6 +1237,73 @@ function renderBudgetList() {
     });
 
     document.getElementById('budgetList').innerHTML = html;
+
+    if (document.getElementById('budgetDetail').style.display !== 'none') {
+        renderBudgetDetail();
+    }
+}
+
+function toggleBudgetDetail() {
+    const panel = document.getElementById('budgetDetail');
+    if (panel.style.display === 'none') {
+        renderBudgetDetail();
+        panel.style.display = '';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function renderBudgetDetail() {
+    const budgetGroups = getBudgets();
+    const groupNames = Object.keys(budgetGroups);
+    const panel = document.getElementById('budgetDetail');
+    if (groupNames.length === 0) { panel.innerHTML = ''; return; }
+
+    const firstGroup = budgetGroups[groupNames[0]];
+    const categories = firstGroup.categories;
+    const expenses = getTransactions(state.currentYear, state.currentMonth)
+        .filter(t => t.type === 'expense' && categories.hasOwnProperty(t.category));
+
+    const txByCat = {};
+    Object.keys(categories).forEach(c => { txByCat[c] = []; });
+    expenses.forEach(tx => { txByCat[tx.category].push(tx); });
+
+    const sortedCats = Object.keys(categories).sort((a, b) => {
+        const sa = txByCat[a].reduce((s, t) => s + t.amount, 0);
+        const sb = txByCat[b].reduce((s, t) => s + t.amount, 0);
+        return sb - sa;
+    });
+
+    let html = '';
+    sortedCats.forEach(cat => {
+        const txs = txByCat[cat].slice().sort((a, b) => b.amount - a.amount);
+        const spent = txs.reduce((s, t) => s + t.amount, 0);
+        const budget = categories[cat];
+        const pct = budget > 0 ? Math.round((spent / budget) * 100) : 0;
+        const pctColor = pct > 100 ? 'var(--expense)' : pct >= 80 ? 'var(--income)' : 'var(--text-muted)';
+
+        html += `<div class="budget-detail-cat">
+            <div class="budget-detail-cat-header">
+                <span class="name">${cat}</span>
+                <span class="stat">${formatWon(spent)} / ${formatWon(budget)} <span style="color:${pctColor};font-weight:600;">(${pct}%)</span></span>
+            </div>`;
+
+        if (txs.length === 0) {
+            html += `<div class="budget-detail-empty">내역 없음</div>`;
+        } else {
+            txs.forEach(tx => {
+                const md = tx.date.slice(5);
+                const memo = tx.memo || '(메모 없음)';
+                html += `<div class="budget-detail-tx">
+                    <span class="left"><span class="date">${md}</span>${memo}</span>
+                    <span class="amount">${formatWon(tx.amount)}원</span>
+                </div>`;
+            });
+        }
+        html += `</div>`;
+    });
+
+    panel.innerHTML = html;
 }
 
 function renderCalendar() {
