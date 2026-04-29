@@ -709,6 +709,18 @@ function loadFitnessData() {
         var rows2 = (results[1].values || []).slice(1);
         var entries = [];
 
+        // mm:ss 또는 hh:mm:ss → 분 단위 소수로 변환 (예: "30:30" → 30.5)
+        function parseMinutes(v) {
+            if (v === undefined || v === null || v === '') return 0;
+            var s = String(v).trim();
+            if (s.indexOf(':') >= 0) {
+                var parts = s.split(':').map(function(p) { return parseFloat(p) || 0; });
+                if (parts.length === 2) return parts[0] + parts[1] / 60;       // mm:ss
+                if (parts.length === 3) return parts[0] * 60 + parts[1] + parts[2] / 60;  // hh:mm:ss
+            }
+            return parseFloat(s) || 0;
+        }
+
         // 운동기록 시트 (런닝/테니스/휴식)
         rows1.forEach(function(r) {
             if (!r[0] || r[0] === '날짜') return;
@@ -718,7 +730,7 @@ function loadFitnessData() {
                 date: r[0],
                 type: type,
                 distance: parseFloat(r[2]) || 0,
-                duration: parseFloat(r[3]) || 0,
+                duration: parseMinutes(r[3]),
                 hr: r[4] ? parseInt(r[4]) : null,
                 cadence: r[5] ? parseInt(r[5]) : null,
                 fatigue: (r[6] !== undefined && r[6] !== '') ? parseInt(r[6]) : null,
