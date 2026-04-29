@@ -111,6 +111,26 @@
       "distance": 0,
       "duration": 150,
       "fatigue": 8
+    },
+    {
+      "date": "2026-04-27",
+      "type": "런닝",
+      "distance": 5.08,
+      "duration": 33.38,
+      "hr": 140,
+      "cadence": 175,
+      "fatigue": 2,
+      "memo": ""
+    },
+    {
+      "date": "2026-04-29",
+      "type": "런닝",
+      "distance": 4.26,
+      "duration": 30.3,
+      "hr": 111,
+      "cadence": 173,
+      "fatigue": 2,
+      "memo": ""
     }
   ]
 }
