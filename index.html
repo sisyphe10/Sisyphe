@@ -698,19 +698,72 @@ function detectBodyPart(memo) {
 }
 
 function loadFitnessData() {
-    fetch('data.json?t=' + Date.now()).then(function(r){return r.json()}).then(function(data) {
-        fitnessActual = (data.fitness || []).map(function(r) {
-            return {
-                date: r.date||'',
-                type: r.type||'',
-                distance: parseFloat(r.distance)||0,
-                duration: parseFloat(r.duration)||0,
-                hr: r.hr || null,
-                cadence: r.cadence || null,
-                fatigue: (r.fatigue !== undefined && r.fatigue !== null) ? r.fatigue : null,
-                memo: r.memo||''
+    // 가계부 패턴: Google Sheets 직접 fetch (운동기록 + 웨이트 시트)
+    var url1 = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent('운동기록')}?key=${GOOGLE_API_KEY}`;
+    var url2 = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent('웨이트')}?key=${GOOGLE_API_KEY}`;
+    Promise.all([
+        fetch(url1).then(function(r){return r.json()}),
+        fetch(url2).then(function(r){return r.json()})
+    ]).then(function(results) {
+        var rows1 = (results[0].values || []).slice(1);  // 헤더 제외
+        var rows2 = (results[1].values || []).slice(1);
+        var entries = [];
+
+        // 운동기록 시트 (런닝/테니스/휴식)
+        rows1.forEach(function(r) {
+            if (!r[0] || r[0] === '날짜') return;
+            var type = r[1] || '';
+            if (type !== '런닝' && type !== '테니스' && type !== '휴식') return;
+            var e = {
+                date: r[0],
+                type: type,
+                distance: parseFloat(r[2]) || 0,
+                duration: parseFloat(r[3]) || 0,
+                hr: r[4] ? parseInt(r[4]) : null,
+                cadence: r[5] ? parseInt(r[5]) : null,
+                fatigue: (r[6] !== undefined && r[6] !== '') ? parseInt(r[6]) : null,
+                memo: r[7] || ''
             };
+            entries.push(e);
         });
+
+        // 웨이트 시트 (날짜별 묶기)
+        var byDate = {};
+        rows2.forEach(function(r) {
+            if (!r[0] || r[0] === '날짜') return;
+            if (!byDate[r[0]]) byDate[r[0]] = [];
+            byDate[r[0]].push(r);
+        });
+        Object.keys(byDate).forEach(function(date) {
+            var items = byDate[date];
+            var memoParts = [];
+            var fatigue = null;
+            items.forEach(function(r) {
+                var name = r[2] || '';
+                var kg = r[3] || '', reps = r[4] || '', sets = r[5] || '';
+                if (name) {
+                    if (kg && reps && sets) memoParts.push(name + ' ' + kg + 'kg x ' + reps + '회 x ' + sets + '세트');
+                    else if (reps && sets) memoParts.push(name + ' ' + reps + '회 x ' + sets + '세트');
+                    else memoParts.push(name);
+                }
+                if (fatigue === null && r[6]) fatigue = parseInt(r[6]);
+            });
+            entries.push({
+                date: date,
+                type: '웨이트',
+                distance: 0,
+                duration: 0,
+                hr: null,
+                cadence: null,
+                fatigue: fatigue,
+                memo: memoParts.join(', ')
+            });
+        });
+
+        // 날짜순 정렬
+        entries.sort(function(a, b) { return a.date.localeCompare(b.date); });
+        fitnessActual = entries;
+
         fitnessLoaded = true;
         // 현재 주차 자동 선택
         var today = getTodayStr();
@@ -719,7 +772,8 @@ function loadFitnessData() {
             if (today >= FITNESS_WEEKS[i].mon && today <= wEnd) { fitnessWeekIdx = i; break; }
         }
         renderFitness();
-    }).catch(function() {
+    }).catch(function(err) {
+        console.error('fitness sheet fetch 실패:', err);
         fitnessLoaded = true;
         renderFitness();
     });
