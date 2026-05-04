@@ -131,6 +131,34 @@
       "cadence": 173,
       "fatigue": 2,
       "memo": ""
+    },
+    {
+      "date": "2026-05-01",
+      "type": "런닝",
+      "distance": 4.46,
+      "duration": 0,
+      "memo": "",
+      "hr": 111,
+      "cadence": 157,
+      "fatigue": 2
+    },
+    {
+      "date": "2026-05-02",
+      "type": "런닝",
+      "distance": 18.12,
+      "duration": 0,
+      "memo": "",
+      "hr": 137,
+      "cadence": 180,
+      "fatigue": 8
+    },
+    {
+      "date": "2026-05-02",
+      "type": "테니스",
+      "distance": 0,
+      "duration": 90.0,
+      "memo": "",
+      "fatigue": 5
     }
   ]
 }
